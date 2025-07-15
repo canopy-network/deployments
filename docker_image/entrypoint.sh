@@ -1,23 +1,4 @@
 #!/bin/sh
-#
-CONFIG_PATH="$(realpath "$(dirname "$0")/../monitoring-stack/loadbalancer/traefik.yml")"
-ENV_FILE="$(realpath "$(dirname "$0")/../monitoring-stack/.env")"
-
-# Load .env file
-if [ -f $ENV_FILE ]; then
-  echo "loading env file"
-  echo $ENV_FILE
-  . $ENV_FILE
-else
-  echo "env file not found"
-fi
-
-if grep -q "\${ACME_EMAIL}" "$CONFIG_PATH"; then
-  echo "Replacing \${ACME_EMAIL} with $ACME_EMAIL in $CONFIG_PATH"
-  sed -i "s|\${ACME_EMAIL}|$ACME_EMAIL|g" "$CONFIG_PATH"
-else
-  echo "ACME_EMAIL already set."
-fi
 
 # if BIN_PATH its defined we make a link to it from its volume to our system
 if [[ -z "${BIN_PATH}" ]]; then
