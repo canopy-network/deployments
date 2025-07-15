@@ -9,19 +9,22 @@ echo
 echo "Welcome to Canopy setup!"
 echo
 
-# Canopy branch to build
+# Canopy branch to build, can be overridden by config.env
 BRANCH=beta-0.1.3
 
 # Function to show current setup configuration
-show_variables() {
+show_config() {
     echo "Loaded setup configuration:"
+    echo
     echo "SETUP_TYPE=${SETUP_TYPE}"
     echo "DOMAIN=${DOMAIN}"
     echo "ACME_EMAIL=${ACME_EMAIL}"
+    echo "BRANCH=$BRANCH"
+    echo
 }
 
-# Function to save variables to a file
-save_variables() {
+# Function to save config to a file
+save_config() {
     local config_file="config.env"
     echo "SETUP_TYPE=${SETUP_TYPE}" > "${config_file}"
     echo "DOMAIN=${DOMAIN}" >> "${config_file}"
@@ -29,8 +32,8 @@ save_variables() {
     echo "Setup configuration saved to ${config_file}"
 }
 
-# Function to load variables from a file
-load_variables() {
+# Function to load config from a file
+load_config() {
     local config_file="config.env"
     if [[ -f "${config_file}" ]]; then
         source "${config_file}"
@@ -40,15 +43,21 @@ load_variables() {
     fi
 }
 
-# Check if config.env exists and ask user if they want to load it
+# Check if config.env exists and handle loading
 if [[ -f "config.env" ]]; then
-    read -p "config.env found. Do you want to load the existing configuration? (Y/n): " LOAD_CONFIG
-    if [[ "$LOAD_CONFIG" == "n" || "$LOAD_CONFIG" == "N" ]]; then
-        # Don't load config
-        :
-    else
-        load_variables
-        show_variables
+    should_load_config() {
+        # Auto-load if AUTOLOAD is present
+        if grep -q "AUTOLOAD" config.env; then
+            return 0
+        fi
+        # Ask user for confirmation
+        read -p "config.env found. Do you want to load the existing configuration? (Y/n): " LOAD_CONFIG
+        echo
+        [[ "$LOAD_CONFIG" != "n" && "$LOAD_CONFIG" != "N" ]]
+    }
+    if should_load_config; then
+        load_config
+        show_config
     fi
 fi
 
@@ -89,15 +98,9 @@ if [[ -z "$SETUP_TYPE" ]]; then
     save_variables
 fi
 
-# Check if container is running before stopping and removing
-if docker ps -q -f name=canopy-config | grep -q .; then
-    docker stop canopy-config
-fi
-
-# Check if container exists before removing
-if docker ps -aq -f name=canopy-config | grep -q .; then
-    docker rm canopy-config
-fi
+# Remove any previous canopy-config container still around
+docker stop canopy-config > /dev/null 2>&1
+docker rm canopy-config > /dev/null 2>&1
 
 echo "setting up the validator key"
 docker pull canopynetwork/canopy && \
@@ -174,7 +177,6 @@ if [[ -n "$DOMAIN" ]]; then
     "$NODE2_CONFIG"
 fi
 
-<<<<<<< HEAD
 set -e
 
 
@@ -212,16 +214,17 @@ sed -i.bak -E "/basicAuth:/,/- /{
 }" "$YAML_PATH"
 
 echo "Updated users list in $YAML_PATH"
-=======
 echo "setup complete ✅"
 echo
 
 if [[ "$SETUP_TYPE" == "simple" ]]; then
-    echo "These are your configured URLs"
+    echo "These are your configured URLs:"
+    echo
     echo http://wallet.node1.localhost/
     echo http://explorer.node1.localhost/
     echo http://rpc.node1.localhost/
     echo http://adminrpc.node1.localhost/
+    echo
     echo http://wallet.node2.localhost/
     echo http://explorer.node2.localhost/
     echo http://rpc.node2.localhost/
@@ -229,14 +232,15 @@ if [[ "$SETUP_TYPE" == "simple" ]]; then
 fi
 
 if [[ "$SETUP_TYPE" == "full" ]]; then
-    echo "These are your configured URLs"
+    echo "These are your configured URLs:"
+    echo
     echo http://wallet.node1.$DOMAIN/
     echo http://explorer.node1.$DOMAIN/
     echo http://rpc.node1.$DOMAIN/
     echo http://adminrpc.node1.$DOMAIN/
+    echo
     echo http://wallet.node2.$DOMAIN/
     echo http://explorer.node2.$DOMAIN/
     echo http://rpc.node2.$DOMAIN/
     echo http://adminrpc.node2.$DOMAIN/
 fi
->>>>>>> d64f2e8 (Welcome art and save/load)
