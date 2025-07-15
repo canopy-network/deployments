@@ -107,6 +107,7 @@ Internal ports
 
 ```bash
 
+sudo make pull
 sudo make up
 
 ```

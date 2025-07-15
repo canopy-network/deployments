@@ -29,6 +29,7 @@ cp .env.template .env
 
 ```bash
 
+sudo make pull
 sudo make up
 
 ```

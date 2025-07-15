@@ -3,7 +3,8 @@ ifneq (,$(wildcard .env))
   include .env
   export
 endif
-
+pull:
+	docker compose pull
 build:
 	docker compose build
 up:

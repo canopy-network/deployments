@@ -4,6 +4,8 @@ ifneq (,$(wildcard .env))
   export
 endif
 
+pull:
+	docker compose pull
 build:
 	docker compose build
 up:
