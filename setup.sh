@@ -14,17 +14,6 @@ CONFIG_FILE=setup.conf
 # Default canopy branch to build, can be overridden in config file
 BRANCH=beta-0.1.3
 
-# Function to show current setup configuration
-show_config() {
-    echo "Loaded setup configuration:"
-    echo
-    echo "SETUP_TYPE: $SETUP_TYPE"
-    echo "DOMAIN: $DOMAIN"
-    echo "ACME_EMAIL: $ACME_EMAIL"
-    echo "BRANCH: $BRANCH"
-    echo
-}
-
 # Function to save config to a file
 save_config() {
     echo "SETUP_TYPE=${SETUP_TYPE}" > "${CONFIG_FILE}"
@@ -32,6 +21,7 @@ save_config() {
     echo "ACME_EMAIL=${ACME_EMAIL}" >> "${CONFIG_FILE}"
     echo "BRANCH=${BRANCH}" >> "${CONFIG_FILE}"
     echo "Setup configuration saved to ${CONFIG_FILE}"
+    echo "Add AUTOLOAD=yes for this configuration to be loaded automatically"
 }
 # Function to load config from a file
 load_config() {
@@ -42,6 +32,13 @@ load_config() {
         echo "Config file ${config_file} not found"
         return 1
     fi
+    echo "Loaded setup configuration:"
+    echo
+    echo "SETUP_TYPE: $SETUP_TYPE"
+    echo "DOMAIN: $DOMAIN"
+    echo "ACME_EMAIL: $ACME_EMAIL"
+    echo "BRANCH: $BRANCH"
+    echo
 }
 
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -57,7 +54,6 @@ if [[ -f "$CONFIG_FILE" ]]; then
     }
     if should_load_config; then
         load_config
-        show_config
     fi
 fi
 
@@ -94,7 +90,7 @@ read_variables() {
 if [[ -z "$SETUP_TYPE" ]]; then
     # Read variables from user
     read_variables
-    # Save them to $CONFIG_FILE
+    # Save them to configuration file
     save_config
 fi
 
