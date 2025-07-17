@@ -51,7 +51,8 @@ if [[ -f "$CONFIG_FILE" ]]; then
             return 0
         fi
         # Ask user for confirmation
-        read -p "$CONFIG_FILE found. Do you want to load the existing configuration? (Y/n): " LOAD_CONFIG
+        echo "$CONFIG_FILE found."
+        read -p "Load the existing configuration? (Y/n): " LOAD_CONFIG
         echo
         [[ "$LOAD_CONFIG" != "n" && "$LOAD_CONFIG" != "N" ]]
     }
