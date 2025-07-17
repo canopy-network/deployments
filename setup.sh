@@ -1,4 +1,104 @@
 #!/bin/bash
+# This script builds a Canopy node.
+echo "  ____    _    _   _  ___  ______   __"
+echo " / ___|  / \  | \ | |/ _ \|  _ \ \ / /"
+echo "| |     / _ \ |  \| | | | | |_) \ V / "
+echo "| |___ / ___ \| |\  | |_| |  __/ | |  "
+echo " \____/_/   \_\_| \_|\___/|_|    |_|  "
+echo
+echo "Welcome to Canopy setup!"
+echo
+
+# Canopy branch to build
+BRANCH=beta-0.1.3
+
+# Function to show current setup configuration
+show_variables() {
+    echo "Loaded setup configuration:"
+    echo "SETUP_TYPE=${SETUP_TYPE}"
+    echo "DOMAIN=${DOMAIN}"
+    echo "ACME_EMAIL=${ACME_EMAIL}"
+}
+
+# Function to save variables to a file
+save_variables() {
+    local config_file="config.env"
+    echo "SETUP_TYPE=${SETUP_TYPE}" > "${config_file}"
+    echo "DOMAIN=${DOMAIN}" >> "${config_file}"
+    echo "ACME_EMAIL=${ACME_EMAIL}" >> "${config_file}"
+    echo "Setup configuration saved to ${config_file}"
+}
+
+# Function to load variables from a file
+load_variables() {
+    local config_file="config.env"
+    if [[ -f "${config_file}" ]]; then
+        source "${config_file}"
+    else
+        echo "Config file ${config_file} not found"
+        return 1
+    fi
+}
+
+# Check if config.env exists and ask user if they want to load it
+if [[ -f "config.env" ]]; then
+    read -p "config.env found. Do you want to load the existing configuration? (Y/n): " LOAD_CONFIG
+    if [[ "$LOAD_CONFIG" == "n" || "$LOAD_CONFIG" == "N" ]]; then
+        # Don't load config
+        :
+    else
+        load_variables
+        show_variables
+    fi
+fi
+
+# Function to read SETUP, DOMAIN and ACME_EMAIL configuration options from user
+read_variables() {
+    # Ask user for setup type
+    echo "Please select setup type:"
+    echo "1) simple (only contains the node containers)"
+    echo "2) full (contains the node containers and the monitoring stack)"
+    read -p "Enter your choice (1 or 2): " SETUP_CHOICE
+    # Validate and set SETUP
+    while [[ "$SETUP_CHOICE" != "1" && "$SETUP_CHOICE" != "2" ]]; do
+        echo "Invalid choice. Please enter 1 for simple or 2 for full."
+        read -p "Enter your choice (1 or 2): " SETUP_CHOICE
+    done
+    if [[ "$SETUP_CHOICE" == "1" ]]; then
+        SETUP_TYPE="simple"
+    else
+        SETUP_TYPE="full"
+    fi
+    # Ask for domain input
+    read -p "Please enter the domain [default: localhost]: " DOMAIN
+    if [[ -z "$DOMAIN" ]]; then
+        DOMAIN="localhost"
+    fi
+    # Ask for email input
+    read -p "Please enter email to validate the domain against [default: test@example.com]: " ACME_EMAIL
+    if [[ -z "$ACME_EMAIL" ]]; then
+        ACME_EMAIL="test@example.com"
+    fi
+}
+
+# Prmopt user for variables if SETUP_TYPE is not present
+if [[ -z "$SETUP_TYPE" ]]; then
+    # Read variables from user
+    read_variables
+    # Save them to config.env
+    save_variables
+fi
+
+# Check if container is running before stopping and removing
+if docker ps -q -f name=canopy-config | grep -q .; then
+    docker stop canopy-config
+fi
+
+# Check if container exists before removing
+if docker ps -aq -f name=canopy-config | grep -q .; then
+    docker rm canopy-config
+fi
+
 echo "setting up the validator key"
 docker pull canopynetwork/canopy && \
 docker run --user root -it -p 50000:50000 -p 50001:50001 -p 50002:50002 -p 50003:50003 -p 9001:9001 --name canopy-config  --volume ${PWD}/canopy_data/node1/:/root/.canopy/ canopynetwork/canopy && \
@@ -6,36 +106,12 @@ docker stop canopy-config && docker rm canopy-config && \
 cp canopy_data/node1/validator_key.json canopy_data/node2/ && \
 cp canopy_data/node1/keystore.json canopy_data/node2/
 
-# ask user for setup type
-echo "Please select setup type:"
-echo "1) simple (only contains the node containers)"
-echo "2) full (contains the node containers and the monitoring stack)"
-read -p "Enter your choice (1 or 2): " SETUP_CHOICE
-
-# validate and set SETUP_TYPE
-while [[ "$SETUP_CHOICE" != "1" && "$SETUP_CHOICE" != "2" ]]; do
-    echo "Invalid choice. Please enter 1 for simple or 2 for full."
-    read -p "Enter your choice (1 or 2): " SETUP_CHOICE
-done
-
-if [[ "$SETUP_CHOICE" == "1" ]]; then
-    SETUP_TYPE="simple"
-else
-    SETUP_TYPE="full"
-fi
-
 if [[ "$SETUP_TYPE" == "simple" ]]; then
   echo "setup complete ✅"
   exit 0
 fi
 
 STACK_PATH="$(realpath "$(dirname "$0")/monitoring-stack/")"
-
-# ask user for domain input
-read -p "Please enter the domain [default: localhost]: " DOMAIN
-
-# ask user for acme email input
-read -p "Please enter email to validate the domain against [default: test@example.com]: " ACME_EMAIL
 
 # define the path to the template and new .env file
 ENV_TEMPLATE_FILE="$STACK_PATH/.env.template"
@@ -98,6 +174,7 @@ if [[ -n "$DOMAIN" ]]; then
     "$NODE2_CONFIG"
 fi
 
+<<<<<<< HEAD
 set -e
 
 
@@ -135,3 +212,31 @@ sed -i.bak -E "/basicAuth:/,/- /{
 }" "$YAML_PATH"
 
 echo "Updated users list in $YAML_PATH"
+=======
+echo "setup complete ✅"
+echo
+
+if [[ "$SETUP_TYPE" == "simple" ]]; then
+    echo "These are your configured URLs"
+    echo http://wallet.node1.localhost/
+    echo http://explorer.node1.localhost/
+    echo http://rpc.node1.localhost/
+    echo http://adminrpc.node1.localhost/
+    echo http://wallet.node2.localhost/
+    echo http://explorer.node2.localhost/
+    echo http://rpc.node2.localhost/
+    echo http://adminrpc.node2.localhost/
+fi
+
+if [[ "$SETUP_TYPE" == "full" ]]; then
+    echo "These are your configured URLs"
+    echo http://wallet.node1.$DOMAIN/
+    echo http://explorer.node1.$DOMAIN/
+    echo http://rpc.node1.$DOMAIN/
+    echo http://adminrpc.node1.$DOMAIN/
+    echo http://wallet.node2.$DOMAIN/
+    echo http://explorer.node2.$DOMAIN/
+    echo http://rpc.node2.$DOMAIN/
+    echo http://adminrpc.node2.$DOMAIN/
+fi
+>>>>>>> d64f2e8 (Welcome art and save/load)
