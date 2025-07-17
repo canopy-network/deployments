@@ -12,58 +12,24 @@ echo
 CONFIG_FILE=setup.conf
 
 # Default canopy branch to build, can be overridden in config file
-BRANCH=beta-0.1.3
+BRANCH=latest
 
-# Function to show current setup configuration
-show_config() {
+# Read configuration file, if available
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+
     echo "Loaded setup configuration:"
     echo
     echo "SETUP_TYPE: $SETUP_TYPE"
     echo "DOMAIN: $DOMAIN"
     echo "ACME_EMAIL: $ACME_EMAIL"
     echo "BRANCH: $BRANCH"
+    echo "HTPASSWD: $HTPASSWD"
     echo
-}
-
-# Function to save config to a file
-save_config() {
-    echo "SETUP_TYPE=${SETUP_TYPE}" > "${CONFIG_FILE}"
-    echo "DOMAIN=${DOMAIN}" >> "${CONFIG_FILE}"
-    echo "ACME_EMAIL=${ACME_EMAIL}" >> "${CONFIG_FILE}"
-    echo "BRANCH=${BRANCH}" >> "${CONFIG_FILE}"
-    echo "Setup configuration saved to ${CONFIG_FILE}"
-}
-# Function to load config from a file
-load_config() {
-    config_file="${CONFIG_FILE}"
-    if [[ -f "${config_file}" ]]; then
-        source "${config_file}"
-    else
-        echo "Config file ${config_file} not found"
-        return 1
-    fi
-}
-
-if [[ -f "$CONFIG_FILE" ]]; then
-    should_load_config() {
-        # Auto-load if AUTOLOAD is present
-        if grep -q "AUTOLOAD=yes\|AUTOLOAD=true" $CONFIG_FILE; then
-            return 0
-        fi
-        # Ask user for confirmation
-        read -p "Load previous setup configuration? (Y/n): " LOAD_CONFIG
-        echo
-        [[ "$LOAD_CONFIG" != "n" && "$LOAD_CONFIG" != "N" ]]
-    }
-    if should_load_config; then
-        load_config
-        show_config
-    fi
 fi
 
-# Function to read SETUP, DOMAIN and ACME_EMAIL configuration options from user
-read_variables() {
-    # Ask user for setup type
+# SETUP_TYPE is not present, request from user
+if [[ -z "$SETUP_TYPE" ]]; then
     echo "Please select setup type:"
     echo "1) simple (only contains the node containers)"
     echo "2) full (contains the node containers and the monitoring stack)"
@@ -78,24 +44,32 @@ read_variables() {
     else
         SETUP_TYPE="full"
     fi
+fi
+
+# DOMAIN not present, request from user
+if [[ -z "$DOMAIN" ]]; then
     # Ask for domain input
     read -p "Please enter the domain [default: localhost]: " DOMAIN
     if [[ -z "$DOMAIN" ]]; then
         DOMAIN="localhost"
     fi
+fi
+
+# ACME_EMAIL not present, request from user
+if [[ -z "$ACME_EMAIL" ]]; then
     # Ask for email input
     read -p "Please enter email to validate the domain against [default: test@example.com]: " ACME_EMAIL
     if [[ -z "$ACME_EMAIL" ]]; then
         ACME_EMAIL="test@example.com"
     fi
-}
+fi
 
-# Prompt user for variables if SETUP_TYPE is not present
-if [[ -z "$SETUP_TYPE" ]]; then
-    # Read variables from user
-    read_variables
-    # Save them to $CONFIG_FILE
-    save_config
+# BRANCH not present, request from user
+if [[ -z "$BRANCH" ]]; then
+    read -p "Enter canopy git branch [default: latest]: " BRANCH
+    if [[ -z "$BRANCH" ]]; then
+        BRANCH=latest
+    fi
 fi
 
 # Remove any previous canopy-config container still around
@@ -103,29 +77,16 @@ docker stop canopy-config > /dev/null 2>&1
 docker rm canopy-config > /dev/null 2>&1
 
 echo "Setting up the validator key"
+echo
+
 docker pull canopynetwork/canopy && \
-docker run --user root -it -p 50000:50000 -p 50001:50001 -p 50002:50002 -p 50003:50003 -p 9001:9001 --name canopy-config  --volume ${PWD}/canopy_data/node1/:/root/.canopy/ canopynetwork/canopy && \
-docker stop canopy-config && docker rm canopy-config && \
-cp canopy_data/node1/validator_key.json canopy_data/node2/ && \
-cp canopy_data/node1/keystore.json canopy_data/node2/
+    docker run --user root -it -p 50000:50000 -p 50001:50001 -p 50002:50002 -p 50003:50003 -p 9001:9001 --name canopy-config  --volume ${PWD}/canopy_data/node1/:/root/.canopy/ canopynetwork/canopy && \
+    cp canopy_data/node1/validator_key.json canopy_data/node2/ && \
+    cp canopy_data/node1/keystore.json canopy_data/node2/
 
-# ask user for setup type
-echo "Please select setup type:"
-echo "1) simple (only contains the node containers)"
-echo "2) full (contains the node containers and the monitoring stack)"
-read -p "Enter your choice (1 or 2): " SETUP_CHOICE
-
-# validate and set SETUP_TYPE
-while [[ "$SETUP_CHOICE" != "1" && "$SETUP_CHOICE" != "2" ]]; do
-    echo "Invalid choice. Please enter 1 for simple or 2 for full."
-    read -p "Enter your choice (1 or 2): " SETUP_CHOICE
-done
-
-if [[ "$SETUP_CHOICE" == "1" ]]; then
-    SETUP_TYPE="simple"
-else
-    SETUP_TYPE="full"
-fi
+# Remove any previous canopy-config container still around
+docker stop canopy-config > /dev/null 2>&1
+docker rm canopy-config > /dev/null 2>&1
 
 if [[ "$SETUP_TYPE" == "simple" ]]; then
   echo "setup complete ✅"
@@ -133,12 +94,6 @@ if [[ "$SETUP_TYPE" == "simple" ]]; then
 fi
 
 STACK_PATH="$(realpath "$(dirname "$0")/monitoring-stack/")"
-
-# ask user for domain input
-read -p "Please enter the domain [default: localhost]: " DOMAIN
-
-# ask user for acme email input
-read -p "Please enter email to validate the domain against [default: test@example.com]: " ACME_EMAIL
 
 # define the path to the template and new .env file
 ENV_TEMPLATE_FILE="$STACK_PATH/.env.template"
@@ -203,29 +158,31 @@ fi
 
 set -e
 
+# HTPASSWD not present, ask user for credentials and construct it
+if [[ -z "$HTPASSWD" ]]; then
+    echo "Enter username for htpasswd:"
+    read USERNAME
 
-YAML_PATH="monitoring-stack/loadbalancer/services/middleware.yaml"
+    echo "Enter password for htpasswd:"
+    read -s PASSWORD
+    echo
 
-echo "Enter username:"
-read USERNAME
+    if ! command -v htpasswd &> /dev/null; then
+        echo "Error: htpasswd not found. Please install apache2-utils."
+        exit 1
+    fi
 
-echo "Enter password:"
-read -s PASSWORD
-echo
-
-if ! command -v htpasswd &> /dev/null; then
-  echo "Error: htpasswd not found. Please install apache2-utils."
-  exit 1
+    HTPASSWD=$(htpasswd -nbB "$USERNAME" "$PASSWORD")
 fi
 
-HTPASSWD_LINE=$(htpasswd -nbB "$USERNAME" "$PASSWORD")
-
 # Escape $ for sed and wrap in quotes
-ESCAPED_LINE=$(printf '%s' "$HTPASSWD_LINE" | sed 's/\$/\\\$/g')
+ESCAPED_LINE=$(printf '%s' "$HTPASSWD" | sed 's/\$/\\\$/g')
 # Use sed to replace the entire users list in the yaml
 # This assumes your users list is indented exactly 8 spaces under users:
 # and users: line is at indentation level 6 spaces.
 # Adjust indentation accordingly if different.
+
+YAML_PATH="monitoring-stack/loadbalancer/services/middleware.yaml"
 
 # Wrap in quotes and indent with 8 spaces (adjust as needed)
 FINAL_LINE="          - \"$ESCAPED_LINE\""

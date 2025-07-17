@@ -2,11 +2,11 @@
 
 # if BIN_PATH its defined we make a link to it from its volume to our system
 if [[ -z "${BIN_PATH}" ]]; then
-  echo "using existing BIN_PATH $BIN_PATH"
-# if BIN_PATH it's no provided we sue '/bin/cli'
+    echo "BIN_PATH not provided using /bin/cli as default"
+    export BIN_PATH="/bin/cli"
 else
-  echo "BIN_PATH not provided using /bin/cli as default"
-  export BIN_PATH="/bin/cli"
+    echo "using existing BIN_PATH $BIN_PATH"
+    # if BIN_PATH it's no provided we sue '/bin/cli'
 fi
 
 # Persisting current version
