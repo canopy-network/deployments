@@ -6,10 +6,10 @@ echo "| |     / _ \ |  \| | | | | |_) \ V / "
 echo "| |___ / ___ \| |\  | |_| |  __/ | |  "
 echo " \____/_/   \_\_| \_|\___/|_|    |_|  "
 echo
-echo "Welcome to Canopy setup!"
+echo "Welcome to Canopy Setup!"
 echo
 
-CONFIG_FILE=config.env
+CONFIG_FILE=setup.conf
 
 # Default canopy branch to build, can be overridden in config file
 BRANCH=beta-0.1.3
