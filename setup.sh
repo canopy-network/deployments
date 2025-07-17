@@ -90,12 +90,12 @@ read_variables() {
     fi
 }
 
-# Prmopt user for variables if SETUP_TYPE is not present
+# Prompt user for variables if SETUP_TYPE is not present
 if [[ -z "$SETUP_TYPE" ]]; then
     # Read variables from user
     read_variables
-    # Save them to config.env
-    save_variables
+    # Save them to $CONFIG_FILE
+    save_config
 fi
 
 # Remove any previous canopy-config container still around
