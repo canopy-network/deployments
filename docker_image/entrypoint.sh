@@ -1,22 +1,32 @@
 #!/bin/sh
 
-# if BIN_PATH its defined we make a link to it from its volume to our system
-if [[ -z "${BIN_PATH}" ]]; then
-  echo "using existing BIN_PATH $BIN_PATH"
-# if BIN_PATH it's no provided we sue '/bin/cli'
+# Set default BIN_PATH if not provided
+if [[ -z "${BIN_PATH:-}" ]]; then
+    echo "BIN_PATH not provided, using /bin/cli as default"
+    export BIN_PATH="/bin/cli"
 else
-  echo "BIN_PATH not provided using /bin/cli as default"
-  export BIN_PATH="/bin/cli"
+    echo "Using provided BIN_PATH: $BIN_PATH"
 fi
 
-# Persisting current version
-# Check if it exist
-if [ -f "/root/.canopy/cli" ]; then
-  echo "Found existing persistent cli version"
-else
-  echo "Persisting build version for current cli"
-  mv $BIN_PATH /root/.canopy/cli
-fi
-ln -s /root/.canopy/cli $BIN_PATH
+# Ensure directory exists
+mkdir -p /root/.canopy
 
+# Handle CLI binary persistence
+if [[ -f "/root/.canopy/cli" ]]; then
+    echo "Found existing CLI version"
+else
+    echo "Persisting build version for current CLI"
+    if [[ -f "$BIN_PATH" ]]; then
+        mv "$BIN_PATH" /root/.canopy/cli
+    else
+        echo "ERROR: Source binary not found at $BIN_PATH" >&2
+        exit 1
+    fi
+fi
+
+# Clean up existing symlink and create new one
+rm -f "$BIN_PATH"
+ln -s /root/.canopy/cli "$BIN_PATH"
+
+# Execute the main application
 exec /app/canopy "$@"
