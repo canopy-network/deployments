@@ -1,28 +1,92 @@
 #!/bin/bash
-echo "setting up the validator key"
-docker pull canopynetwork/canopy && \
-docker run --user root -it -p 50000:50000 -p 50001:50001 -p 50002:50002 -p 50003:50003 -p 9001:9001 --name canopy-config  --volume ${PWD}/canopy_data/node1/:/root/.canopy/ canopynetwork/canopy && \
-docker stop canopy-config && docker rm canopy-config && \
-cp canopy_data/node1/validator_key.json canopy_data/node2/ && \
-cp canopy_data/node1/keystore.json canopy_data/node2/
+# This script builds a Canopy node.
+echo "  ____    _    _   _  ___  ______   __"
+echo " / ___|  / \  | \ | |/ _ \|  _ \ \ / /"
+echo "| |     / _ \ |  \| | | | | |_) \ V / "
+echo "| |___ / ___ \| |\  | |_| |  __/ | |  "
+echo " \____/_/   \_\_| \_|\___/|_|    |_|  "
+echo
+echo "Welcome to Canopy Setup!"
+echo
 
-# ask user for setup type
-echo "Please select setup type:"
-echo "1) simple (only contains the node containers)"
-echo "2) full (contains the node containers and the monitoring stack)"
-read -p "Enter your choice (1 or 2): " SETUP_CHOICE
+CONFIG_FILE=setup.conf
 
-# validate and set SETUP_TYPE
-while [[ "$SETUP_CHOICE" != "1" && "$SETUP_CHOICE" != "2" ]]; do
-    echo "Invalid choice. Please enter 1 for simple or 2 for full."
-    read -p "Enter your choice (1 or 2): " SETUP_CHOICE
-done
+# Default canopy branch to build, can be overridden in config file
+BRANCH=latest
 
-if [[ "$SETUP_CHOICE" == "1" ]]; then
-    SETUP_TYPE="simple"
-else
-    SETUP_TYPE="full"
+# Read configuration file, if available
+if [[ -f "$CONFIG_FILE" ]]; then
+    source "$CONFIG_FILE"
+
+    echo "Loaded setup configuration:"
+    echo
+    echo "SETUP_TYPE: $SETUP_TYPE"
+    echo "DOMAIN: $DOMAIN"
+    echo "ACME_EMAIL: $ACME_EMAIL"
+    echo "BRANCH: $BRANCH"
+    echo "HTPASSWD: $HTPASSWD"
+    echo
 fi
+
+# SETUP_TYPE is not present, request from user
+if [[ -z "$SETUP_TYPE" ]]; then
+    echo "Please select setup type:"
+    echo "1) simple (only contains the node containers)"
+    echo "2) full (contains the node containers and the monitoring stack)"
+    read -p "Enter your choice (1 or 2): " SETUP_CHOICE
+    # Validate and set SETUP
+    while [[ "$SETUP_CHOICE" != "1" && "$SETUP_CHOICE" != "2" ]]; do
+        echo "Invalid choice. Please enter 1 for simple or 2 for full."
+        read -p "Enter your choice (1 or 2): " SETUP_CHOICE
+    done
+    if [[ "$SETUP_CHOICE" == "1" ]]; then
+        SETUP_TYPE="simple"
+    else
+        SETUP_TYPE="full"
+    fi
+fi
+
+# DOMAIN not present, request from user
+if [[ -z "$DOMAIN" ]]; then
+    # Ask for domain input
+    read -p "Please enter the domain [default: localhost]: " DOMAIN
+    if [[ -z "$DOMAIN" ]]; then
+        DOMAIN="localhost"
+    fi
+fi
+
+# ACME_EMAIL not present, request from user
+if [[ -z "$ACME_EMAIL" ]]; then
+    # Ask for email input
+    read -p "Please enter email to validate the domain against [default: test@example.com]: " ACME_EMAIL
+    if [[ -z "$ACME_EMAIL" ]]; then
+        ACME_EMAIL="test@example.com"
+    fi
+fi
+
+# BRANCH not present, request from user
+if [[ -z "$BRANCH" ]]; then
+    read -p "Enter canopy git branch [default: latest]: " BRANCH
+    if [[ -z "$BRANCH" ]]; then
+        BRANCH=latest
+    fi
+fi
+
+# Remove any previous canopy-config container still around
+docker stop canopy-config > /dev/null 2>&1
+docker rm canopy-config > /dev/null 2>&1
+
+echo "Setting up the validator key"
+echo
+
+docker pull canopynetwork/canopy && \
+    docker run --user root -it -p 50000:50000 -p 50001:50001 -p 50002:50002 -p 50003:50003 -p 9001:9001 --name canopy-config  --volume ${PWD}/canopy_data/node1/:/root/.canopy/ canopynetwork/canopy && \
+    cp canopy_data/node1/validator_key.json canopy_data/node2/ && \
+    cp canopy_data/node1/keystore.json canopy_data/node2/
+
+# Remove any previous canopy-config container still around
+docker stop canopy-config > /dev/null 2>&1
+docker rm canopy-config > /dev/null 2>&1
 
 if [[ "$SETUP_TYPE" == "simple" ]]; then
   echo "setup complete ✅"
@@ -30,12 +94,6 @@ if [[ "$SETUP_TYPE" == "simple" ]]; then
 fi
 
 STACK_PATH="$(realpath "$(dirname "$0")/monitoring-stack/")"
-
-# ask user for domain input
-read -p "Please enter the domain [default: localhost]: " DOMAIN
-
-# ask user for acme email input
-read -p "Please enter email to validate the domain against [default: test@example.com]: " ACME_EMAIL
 
 # define the path to the template and new .env file
 ENV_TEMPLATE_FILE="$STACK_PATH/.env.template"
@@ -100,29 +158,31 @@ fi
 
 set -e
 
+# HTPASSWD not present, ask user for credentials and construct it
+if [[ -z "$HTPASSWD" ]]; then
+    echo "Enter username for htpasswd:"
+    read USERNAME
 
-YAML_PATH="monitoring-stack/loadbalancer/services/middleware.yaml"
+    echo "Enter password for htpasswd:"
+    read -s PASSWORD
+    echo
 
-echo "Enter username:"
-read USERNAME
+    if ! command -v htpasswd &> /dev/null; then
+        echo "Error: htpasswd not found. Please install apache2-utils."
+        exit 1
+    fi
 
-echo "Enter password:"
-read -s PASSWORD
-echo
-
-if ! command -v htpasswd &> /dev/null; then
-  echo "Error: htpasswd not found. Please install apache2-utils."
-  exit 1
+    HTPASSWD=$(htpasswd -nbB "$USERNAME" "$PASSWORD")
 fi
 
-HTPASSWD_LINE=$(htpasswd -nbB "$USERNAME" "$PASSWORD")
-
 # Escape $ for sed and wrap in quotes
-ESCAPED_LINE=$(printf '%s' "$HTPASSWD_LINE" | sed 's/\$/\\\$/g')
+ESCAPED_LINE=$(printf '%s' "$HTPASSWD" | sed 's/\$/\\\$/g')
 # Use sed to replace the entire users list in the yaml
 # This assumes your users list is indented exactly 8 spaces under users:
 # and users: line is at indentation level 6 spaces.
 # Adjust indentation accordingly if different.
+
+YAML_PATH="monitoring-stack/loadbalancer/services/middleware.yaml"
 
 # Wrap in quotes and indent with 8 spaces (adjust as needed)
 FINAL_LINE="          - \"$ESCAPED_LINE\""
