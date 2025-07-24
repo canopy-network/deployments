@@ -23,7 +23,7 @@ http:
     basic-auth:
       basicAuth:
         users:
-          - "canopy:$apr1$GnHnOP0b$zWcOv5kosOuUAuvrlu72C0"
+          - "admin:$2y$05$0B35MowhyBgxCOuG1gFVWuOcu90xSZQvxq9Gmp.7Lv59V5MgzgkRS"
 
     websocket-headers:
       headers:

@@ -16,7 +16,7 @@ if [ -f "/root/.canopy/cli" ]; then
 else
   echo "Persisting build version for current cli"
   mv $BIN_PATH /root/.canopy/cli
+  ln -s /root/.canopy/cli $BIN_PATH
 fi
-ln -s /root/.canopy/cli $BIN_PATH
 
 exec /app/canopy "$@"

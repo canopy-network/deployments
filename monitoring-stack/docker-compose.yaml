@@ -12,10 +12,33 @@ x-loki:
     keep-file: 'false'
 
 services:
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: anvil
+    ports:
+      - 8545:8545
+    entrypoint: ["anvil", "-vvv", "--chain-id", "1", "--host", "0.0.0.0", "--block-time", "2", "--port", "8545"]
+    volumes:
+      - ./anvil:/anvil
+    healthcheck:
+      test: ["CMD", "cast", "block-number", "--rpc-url", "http://localhost:8545"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  anvil-init:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: anvil-init
+    user: "0"
+    depends_on:
+      - anvil
+    entrypoint: ["/anvil/anvil.sh"]
+    volumes:
+      - ./anvil:/anvil
+    working_dir: /anvil
   node1:
     container_name: node1
     hostname: node1
-    image: canopynetwork/canopy
     build:
       context: ../docker_image
       dockerfile: ./Dockerfile
@@ -25,7 +48,7 @@ services:
         WALLET_BASE_PATH: '/'
         BUILD_PATH: cmd/cli
         BIN_PATH: $BIN_PATH
-        BRANCH: latest
+        BRANCH: eth-oracle
     env_file:
       - .env
     ports:
@@ -38,18 +61,31 @@ services:
     command: [ "start" ]
     volumes:
       - ../canopy_data/node1:/root/.canopy
-      - ../docker_image/entrypoint.sh:/app/entrypoint.sh
+      # - ../docker_image/entrypoint.sh:/app/entrypoint.sh
     logging: *loki-logging
     deploy:
       resources:
         limits:
-          memory: 4G
-          cpus: "2.0"
-
+          memory: 1G
+          cpus: "1.0"
   node2:
     container_name: node2
     hostname: node2
-    image: canopynetwork/canopy
+    build:
+      context: ../docker_image
+      dockerfile: ./Dockerfile
+      network: host
+      args:
+        EXPLORER_BASE_PATH: '/'
+        WALLET_BASE_PATH: '/'
+        BUILD_PATH: cmd/cli
+        BIN_PATH: $BIN_PATH
+        BRANCH: eth-oracle
+    environment:
+      - ETH_RPC_URL=http://anvil:8545
+      - E2E_FROM_NICK=nick-0
+      - E2E_FROM_PASS=test
+      - USDC_CONTRACT=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
     env_file:
       - .env
     ports:
@@ -62,13 +98,37 @@ services:
     command: [ "start" ]
     volumes:
       - ../canopy_data/node2:/root/.canopy
-      - ../docker_image/entrypoint.sh:/app/entrypoint.sh
     logging: *loki-logging
     deploy:
       resources:
         limits:
-          memory: 4G
-          cpus: "2.0"
+          memory: 1G
+          cpus: "1.0"
+  oracle-e2e:
+    container_name: oracle-e2e
+    hostname: oracle-e2e
+    build:
+      context: ../docker_image
+      dockerfile: ./e2e.Dockerfile
+      network: host
+      args:
+        BRANCH: eth-oracle
+    environment:
+      - ETH_RPC_URL=http://anvil:8545
+      - E2E_FROM_NICK=nick-0
+      - E2E_FROM_PASS=test
+      - USDC_CONTRACT=0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9
+    env_file:
+      - .env
+    command: [ "start" ]
+    volumes:
+      - ../canopy_data/node1:/root/.canopy
+    logging: *loki-logging
+    deploy:
+      resources:
+        limits:
+          memory: 400m
+          cpus: "0.5"
 
   traefik:
     cpus: 2

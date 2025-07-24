@@ -37,13 +37,13 @@ entryPoints:
 certificatesresolvers:
   https-resolver:
     acme:
-      email: ${ACME_EMAIL}
+      email: info@neochiba.net
       storage: /letsencrypt/acme.json
       httpChallenge:
         entryPoint: web
   namecheap:
     acme:
-      email: ${ACME_EMAIL}
+      email: info@neochiba.net
       caServer: https://acme-v02.api.letsencrypt.org/directory
       storage: /letsencrypt/acme.json
       dnschallenge:
@@ -54,7 +54,7 @@ certificatesresolvers:
 
   cloudflare:
     acme:
-      email: ${ACME_EMAIL}
+      email: info@neochiba.net
       storage: /letsencrypt/acme.json
       dnschallenge:
         resolvers:
