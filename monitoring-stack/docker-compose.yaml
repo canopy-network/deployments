@@ -32,7 +32,7 @@ services:
     user: "0"
     depends_on:
       - anvil
-    entrypoint: ["/anvil/anvil.sh"]
+    entrypoint: ["./anvil.sh"]
     volumes:
       - ./anvil:/anvil
     working_dir: /anvil
