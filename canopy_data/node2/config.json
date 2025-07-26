@@ -27,7 +27,7 @@
   "externalAddress": "tcp://node2.localhost",
   "maxInbound": 21,
   "maxOutbound": 7,
-  "trutedPeersIDs": null,
+  "trustedPeerIDs": null,
   "dialPeers": [
     "8ad02e9b05e418f198e89179685a48b227f1c2bc266d4db002f24f8155c5119cbb9387146319b5dc4a260184f20d5d4f@tcp://cnpy.xyz"
   ],
