@@ -828,7 +828,7 @@ groups:
                 conditions:
                     - evaluator:
                         params:
-                            - 1000
+                            - 5000
                         type: gt
                       operator:
                         type: and
@@ -854,7 +854,7 @@ groups:
           annotations:
             __dashboardUid__: fejf7y7gcnwg0e
             __panelId__: "27"
-            description: MempoolCount over 1,000
+            description: MempoolCount over 5,000
             summary: MempoolCount over low limit
           labels:
             canopy: MempoolCount
@@ -1339,7 +1339,7 @@ groups:
                     uid: PBFA97CFB590B2093
                 disableTextWrap: false
                 editorMode: code
-                expr: canopy_block_vdf_iterations{job="canopy"}
+                expr: canopy_block_vdf_iterations{job="canopy", instance="node1:9090"}
                 fullMetaSearch: false
                 includeNullMetadata: true
                 instant: true
@@ -2838,17 +2838,17 @@ groups:
           notification_settings:
             receiver: pagerduty
     - orgId: 1
-      name: Infrastructure alerts
-      folder: infrastructure
-      interval: 1m
+      name: canopy-special-alarm
+      folder: canopy
+      interval: 30s
       rules:
-        - uid: aejwqtshcu41sa
-          title: Disk space instance usage over 90%
+        - uid: bet22ib8zfchsb
+          title: DoubleSignerCount
           condition: C
           data:
             - refId: A
               relativeTimeRange:
-                from: 86400
+                from: 1800
                 to: 0
               datasourceUid: PBFA97CFB590B2093
               model:
@@ -2856,89 +2856,26 @@ groups:
                 datasource:
                     type: prometheus
                     uid: PBFA97CFB590B2093
+                disableTextWrap: false
                 editorMode: code
-                expr: 100 - ((node_filesystem_avail_bytes{job="node-exporter",device!~'rootfs', mountpoint="/etc/hostname"} * 100) / node_filesystem_size_bytes{job="node-exporter",device!~'rootfs'})
-                format: time_series
+                expr: canopy_validator_double_signer_count{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
                 instant: true
                 interval: ""
-                intervalFactor: 1
-                intervalMs: 15000
-                legendFormat: '{{instance}} - {{mountpoint}}'
-                maxDataPoints: 43200
-                range: false
-                refId: A
-                step: 240
-            - refId: C
-              datasourceUid: __expr__
-              model:
-                conditions:
-                    - evaluator:
-                        params:
-                            - 80
-                        type: gt
-                      operator:
-                        type: and
-                      query:
-                        params:
-                            - C
-                      reducer:
-                        params: []
-                        type: last
-                      type: query
-                datasource:
-                    type: __expr__
-                    uid: __expr__
-                expression: A
-                intervalMs: 1000
-                maxDataPoints: 43200
-                refId: C
-                type: threshold
-          dashboardUid: KljDeaZ4z
-          panelId: 152
-          noDataState: NoData
-          execErrState: Error
-          for: 1m
-          annotations:
-            __dashboardUid__: KljDeaZ4z
-            __panelId__: "152"
-            description: Disk space usage over 90% please check the instance space usage or consider extending/migrating
-            summary: Disk spage usage over 90%
-          isPaused: false
-          notification_settings:
-            receiver: grafana-default-email
-        - uid: aejwrno8j3kzke
-          title: CPU instance usage over 80%
-          condition: C
-          data:
-            - refId: A
-              relativeTimeRange:
-                from: 86400
-                to: 0
-              datasourceUid: PBFA97CFB590B2093
-              model:
-                adhocFilters: []
-                datasource:
-                    type: prometheus
-                    uid: PBFA97CFB590B2093
-                editorMode: code
-                expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[5m])) * 100)
-                format: time_series
-                instant: true
-                interval: ""
-                intervalFactor: 1
                 intervalMs: 15000
                 legendFormat: '{{instance}}'
                 maxDataPoints: 43200
                 range: false
                 refId: A
-                step: 240
+                useBackend: false
             - refId: C
               datasourceUid: __expr__
               model:
                 conditions:
                     - evaluator:
                         params:
-                            - 80
+                            - 0
                         type: gt
                       operator:
                         type: and
@@ -2957,26 +2894,28 @@ groups:
                 maxDataPoints: 43200
                 refId: C
                 type: threshold
-          dashboardUid: KljDeaZ4z
+          dashboardUid: fejf7y7gcnwg0e
           panelId: 77
           noDataState: NoData
           execErrState: Error
-          for: 1m
+          for: 30s
           annotations:
-            __dashboardUid__: KljDeaZ4z
+            __dashboardUid__: fejf7y7gcnwg0e
             __panelId__: "77"
-            description: CPU usage peaked over 80% consider checking node activity or instance load
-            summary: CPU usage over 80%
+            description: IMPORTANT check your node since DoubleSignerCount has been detected
+            summary: DoubleSignerCount detected
+          labels:
+            canopy: DoubleSignerCount
           isPaused: false
           notification_settings:
-            receiver: grafana-default-email
-        - uid: eejwtxdcmmvpcc
-          title: Memory instance usage over 85%
+            receiver: pagerduty
+        - uid: bet22rh7v21ogf
+          title: DoubleSigner
           condition: C
           data:
             - refId: A
               relativeTimeRange:
-                from: 86400
+                from: 1800
                 to: 0
               datasourceUid: PBFA97CFB590B2093
               model:
@@ -2984,25 +2923,26 @@ groups:
                 datasource:
                     type: prometheus
                     uid: PBFA97CFB590B2093
+                disableTextWrap: false
                 editorMode: code
-                expr: 100 - ((node_memory_Active_bytes{job='node-exporter'} * 100) / node_memory_MemTotal_bytes{job="node-exporter"})
-                format: time_series
+                expr: canopy_validator_double_signer{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
                 instant: true
                 interval: ""
-                intervalFactor: 1
                 intervalMs: 15000
-                legendFormat: __auto
+                legendFormat: '{{instance}}'
                 maxDataPoints: 43200
                 range: false
                 refId: A
-                step: 240
+                useBackend: false
             - refId: C
               datasourceUid: __expr__
               model:
                 conditions:
                     - evaluator:
                         params:
-                            - 85
+                            - 0
                         type: gt
                       operator:
                         type: and
@@ -3021,26 +2961,28 @@ groups:
                 maxDataPoints: 43200
                 refId: C
                 type: threshold
-          dashboardUid: KljDeaZ4z
+          dashboardUid: fejf7y7gcnwg0e
           panelId: 78
           noDataState: NoData
           execErrState: Error
-          for: 1m
+          for: 30s
           annotations:
-            __dashboardUid__: KljDeaZ4z
+            __dashboardUid__: fejf7y7gcnwg0e
             __panelId__: "78"
-            description: Instance memory usage over 85% please consider checking the instance to avoid service interruptions
-            summary: Instance memory usage over 85%
+            description: DoubleSigner has been detected
+            summary: DoubleSigner detected
+          labels:
+            canopy: DoubleSigner
           isPaused: false
           notification_settings:
-            receiver: grafana-default-email
-        - uid: dejwub4acusjka
-          title: I/O Utilization on instance over 85%
+            receiver: pagerduty
+        - uid: det23aosm0o3kd
+          title: NonSignerCount hard limit
           condition: C
           data:
             - refId: A
               relativeTimeRange:
-                from: 86400
+                from: 1800
                 to: 0
               datasourceUid: PBFA97CFB590B2093
               model:
@@ -3048,25 +2990,26 @@ groups:
                 datasource:
                     type: prometheus
                     uid: PBFA97CFB590B2093
+                disableTextWrap: false
                 editorMode: code
-                expr: avg by (instance) (rate(node_disk_io_time_seconds_total{job="node-exporter", device=~"nvme.*"} [$__rate_interval]))
-                format: time_series
+                expr: canopy_validator_non_signer_count{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
                 instant: true
                 interval: ""
-                intervalFactor: 1
                 intervalMs: 15000
-                legendFormat: '{{instance}} - {{device}}'
+                legendFormat: '{{instance}}'
                 maxDataPoints: 43200
                 range: false
                 refId: A
-                step: 240
+                useBackend: false
             - refId: C
               datasourceUid: __expr__
               model:
                 conditions:
                     - evaluator:
                         params:
-                            - 85
+                            - 50
                         type: gt
                       operator:
                         type: and
@@ -3085,16 +3028,350 @@ groups:
                 maxDataPoints: 43200
                 refId: C
                 type: threshold
-          dashboardUid: KljDeaZ4z
-          panelId: 127
+          dashboardUid: fejf7y7gcnwg0e
+          panelId: 79
           noDataState: NoData
           execErrState: Error
-          for: 1m
+          for: 30s
           annotations:
-            __dashboardUid__: KljDeaZ4z
-            __panelId__: "127"
-            description: I/O Utilization on instance over 85%, please consider checking the disk usage to avoid service degradation
-            summary: I/O Utilization on instance over 85%
+            __dashboardUid__: fejf7y7gcnwg0e
+            __panelId__: "79"
+            description: NonSignerCount is over 50
+            summary: NonSignerCount over hard limit
+          labels:
+            canopy: NonSignerCount
           isPaused: false
           notification_settings:
-            receiver: grafana-default-email
+            receiver: pagerduty
+        - uid: cet23mfpn4ohsb
+          title: NonSigner soft limit
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 1800
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                adhocFilters: []
+                datasource:
+                    type: prometheus
+                    uid: PBFA97CFB590B2093
+                disableTextWrap: false
+                editorMode: code
+                expr: canopy_validator_non_signer{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                interval: ""
+                intervalMs: 15000
+                legendFormat: '{{instance}}'
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          dashboardUid: fejf7y7gcnwg0e
+          panelId: 80
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          keepFiringFor: 30s
+          annotations:
+            __dashboardUid__: fejf7y7gcnwg0e
+            __panelId__: "80"
+            description: NonSigner over 1
+            summary: NonSigner soft limit
+          isPaused: false
+          notification_settings:
+            receiver: Discord alert
+        - uid: bet23q17qm9kwd
+          title: NonSigner hard limit
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 1800
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                adhocFilters: []
+                datasource:
+                    type: prometheus
+                    uid: PBFA97CFB590B2093
+                disableTextWrap: false
+                editorMode: code
+                expr: canopy_validator_non_signer{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                interval: ""
+                intervalMs: 15000
+                legendFormat: '{{instance}}'
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 1
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          dashboardUid: fejf7y7gcnwg0e
+          panelId: 80
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          annotations:
+            __dashboardUid__: fejf7y7gcnwg0e
+            __panelId__: "80"
+            description: NonSigner over 2
+            summary: NonSigner hard limit
+          isPaused: false
+          notification_settings:
+            receiver: Discord alert
+        - uid: cet246jqxla80f
+          title: NonSignerCount soft limit
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 1800
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                adhocFilters: []
+                datasource:
+                    type: prometheus
+                    uid: PBFA97CFB590B2093
+                disableTextWrap: false
+                editorMode: code
+                expr: canopy_validator_non_signer_count{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                interval: ""
+                intervalMs: 15000
+                legendFormat: '{{instance}}'
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 20
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          dashboardUid: fejf7y7gcnwg0e
+          panelId: 79
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          keepFiringFor: 1m
+          annotations:
+            __dashboardUid__: fejf7y7gcnwg0e
+            __panelId__: "79"
+            description: NonSignerCount over 20
+            summary: NonSignerCount soft limit
+          isPaused: false
+          notification_settings:
+            receiver: Discord alert
+        - uid: eet2750fffe2ob
+          title: DoubleSigner discord
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 1800
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                adhocFilters: []
+                datasource:
+                    type: prometheus
+                    uid: PBFA97CFB590B2093
+                disableTextWrap: false
+                editorMode: code
+                expr: canopy_validator_double_signer{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                interval: ""
+                intervalMs: 15000
+                legendFormat: '{{instance}}'
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          dashboardUid: fejf7y7gcnwg0e
+          panelId: 78
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          annotations:
+            __dashboardUid__: fejf7y7gcnwg0e
+            __panelId__: "78"
+            description: DoubleSigner has been detected
+            summary: DoubleSigner detected
+          labels:
+            canopy: DoubleSigner
+          isPaused: false
+          notification_settings:
+            receiver: Discord alert
+        - uid: fet276rvikwlcc
+          title: DoubleSignerCount discord
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 1800
+                to: 0
+              datasourceUid: PBFA97CFB590B2093
+              model:
+                adhocFilters: []
+                datasource:
+                    type: prometheus
+                    uid: PBFA97CFB590B2093
+                disableTextWrap: false
+                editorMode: code
+                expr: canopy_validator_double_signer_count{job="canopy"}
+                fullMetaSearch: false
+                includeNullMetadata: true
+                instant: true
+                interval: ""
+                intervalMs: 15000
+                legendFormat: '{{instance}}'
+                maxDataPoints: 43200
+                range: false
+                refId: A
+                useBackend: false
+            - refId: C
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 0
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          dashboardUid: fejf7y7gcnwg0e
+          panelId: 77
+          noDataState: NoData
+          execErrState: Error
+          for: 30s
+          annotations:
+            __dashboardUid__: fejf7y7gcnwg0e
+            __panelId__: "77"
+            description: IMPORTANT check your node since DoubleSignerCount has been detected
+            summary: DoubleSignerCount detected
+          labels:
+            canopy: DoubleSignerCount
+          isPaused: false
+          notification_settings:
+            receiver: Discord alert
+
