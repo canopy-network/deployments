@@ -33,7 +33,7 @@ RUN make build/wallet
 RUN make build/explorer
 
 # Builds auto-update CLI
-RUN CGO_ENABLED=0 GOOS=linux go build -a -o bin ./auto-update/.
+RUN CGO_ENABLED=0 GOOS=linux go build -a -o bin ./cmd/auto-update/.
 
 # Only build if the file at ${BIN_PATH} doesn't already exist
 RUN if [ ! -f "${BIN_PATH}" ]; then \
