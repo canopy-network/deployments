@@ -50,7 +50,7 @@ http:
       - web
     canopy-monitoring-local:
       rule: Host(`monitoring.localhost`)
-      service: canopy-monitoring 
+      service: canopy-monitoring-local
       priority: 1
       entryPoints:
       - web

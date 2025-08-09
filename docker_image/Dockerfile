@@ -1,7 +1,7 @@
 FROM node:18-alpine AS builder 
 
-ARG WALLET_DIR
-ARG EXPLORER_DIR 
+ARG EXPLORER_BASE_PATH
+ARG WALLET_BASE_PATH 
 ARG BRANCH='latest'
 ARG CLI_DIR
 ARG BUILD_PATH=cmd/cli
@@ -26,6 +26,9 @@ RUN echo "Building from BRANCH=${BRANCH}" && \
 # copy golang 
 COPY --from=golang:1.23.9-alpine  /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
+ENV EXPLORER_BASE_PATH=${EXPLORER_BASE_PATH}
+ENV WALLET_BASE_PATH=${WALLET_BASE_PATH}
+
 RUN go version
 # Builds 
 RUN apk update && apk add --no-cache make bash nodejs npm 

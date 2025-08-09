@@ -25,6 +25,26 @@ http:
         users:
           - "canopy:$apr1$GnHnOP0b$zWcOv5kosOuUAuvrlu72C0"
 
+    strip-wallet-prefix:
+      stripPrefix:
+        prefixes:
+          - "/wallet"
+
+    strip-explorer-prefix:
+      stripPrefix:
+        prefixes:
+          - "/explorer"
+
+    strip-rpc-prefix:
+      stripPrefix:
+        prefixes:
+          - "/rpc"
+
+    strip-adminrpc-prefix:
+      stripPrefix:
+        prefixes:
+          - "/adminrpc"
+
     websocket-headers:
       headers:
         customRequestHeaders:

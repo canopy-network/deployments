@@ -169,9 +169,9 @@ It will also properly configure to expose canopy nodes explorer, rpc and wallet 
 
 Node1 config.json
 ```
-  "rpcURL": "https://rpc.node1.<YOUR_DOMAIN>:50002",
+  "rpcURL": "https://node1.<YOUR_DOMAIN>/rpc",
 
-  "adminRPCUrl": "https://adminrpc.node1.<YOUR_DOMAIN>:50003",
+  "adminRPCUrl": "https://node1.<YOUR_DOMAIN>/adminrpc",
 
   "externalAddress": "tcp://node1.<YOUR_DOMAIN>",
 ```
@@ -179,9 +179,9 @@ Node1 config.json
 Node2 config.json
 
 ```
-  "rpcURL": "https://rpc.node2.<YOUR_DOMAIN>:40002",
+  "rpcURL": "https://node2.<YOUR_DOMAIN>/rpc",
   
-  "adminRPCUrl": "https://admin.node2.<YOUR_DOMAIN>:40003",
+  "adminRPCUrl": "https://node2.<YOUR_DOMAIN>/adminrpc",
 
   "externalAddress": "tcp://node2.<YOUR_DOMAIN>",
 ```
