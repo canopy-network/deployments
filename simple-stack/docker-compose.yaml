@@ -1,16 +1,19 @@
-
 services:
   node1:
     container_name: node1
     image: canopynetwork/canopy
     build:
-      context: ../docker_image
-      dockerfile: ./Dockerfile
+      context: ../../
+      dockerfile: ./deployments/docker_image/Dockerfile
       network: host
       args:
+        EXPLORER_BASE_PATH: "/"
+        WALLET_BASE_PATH: "/"
         BUILD_PATH: cmd/cli
         BIN_PATH: $BIN_PATH
         BRANCH: latest
+        DEV_MODE: True
+        CANOPY_SRC_DIR: ./canopy
     env_file:
       - .env
     ports:
@@ -19,14 +22,21 @@ services:
       - 50002:50002 # RPC
       - 50003:50003 # Admin RPC
       - 9001:9001 # TCP P2P
-    command: [ "start" ]
+      - 3000:3000 # Development port for VSCode
+      - 2222:22 # SSH port for VSCode Remote
+    command: ["start"]
     volumes:
       - ../canopy_data/node1:/root/.canopy
+      # Development volumes for live editing (persistent)
+      - ../../canopy/cmd/rpc/web/explore-new:/app/dev-explorer
+      - ../../canopy/web/wallet:/app/dev-wallet
+      # Additional development tools
+      - ../../canopy:/app/canopy-source
     deploy:
       resources:
         limits:
-          memory: 4G
-          cpus: "2.0"
+          memory: 2G
+          cpus: "1.0"
 
   node2:
     container_name: node2
@@ -39,11 +49,11 @@ services:
       - 40002:40002 # RPC
       - 40003:40003 # Admin RPC
       - 9002:9002 # TCP P2P
-    command: [ "start" ]
+    command: ["start"]
     volumes:
       - ../canopy_data/node2:/root/.canopy
     deploy:
       resources:
         limits:
-          memory: 4G
-          cpus: "2.0"
+          memory: 2G
+          cpus: "1.0"

@@ -25,14 +25,68 @@ reset:
 	rm -rf ../canopy_data/node1/logs/
 
 	rm -rf ../canopy_data/node2/canopy/
-	rm -rf ../canopy_data/node2/logs/
-
+	rm -rf ../canopy_data/node2/canopy/
 
 	mkdir -p ../canopy_data/node1/canopy
 	mkdir -p ../canopy_data/node1/logs
 
 	mkdir -p ../canopy_data/node2/canopy
 	mkdir -p ../canopy_data/node2/logs
+
+# Development commands
+dev-shell:
+	@echo "Entering development shell in node1 container..."
+	docker exec -it node1 /bin/sh
+
+dev-start:
+	@echo "Starting development mode..."
+	@echo "Development server will be available at: http://localhost:3000"
+	@echo "Use VSCode Remote Development extension to connect to:"
+	@echo "  - Host: localhost"
+	@echo "  - Port: 3000"
+	@echo "  - Username: root"
+	@echo "  - Password: (leave empty)"
+	docker exec -d node1 /app/dev-start.sh
+
+dev-stop:
+	@echo "Stopping development mode..."
+	docker exec node1 pkill -f "npm run dev" || true
+
+dev-vscode:
+	@echo "Starting development mode for VSCode connection..."
+	@echo "1. Start development mode: make dev-start"
+	@echo "2. In VSCode, install 'Remote Development' extension"
+	@echo "3. Press Ctrl+Shift+P and select 'Remote-SSH: Connect to Host'"
+	@echo "4. Enter: root@localhost:3000"
+	@echo "5. Select the container folder to work with"
+	make dev-start
+
+dev-sync-explorer:
+	@echo "Syncing explorer changes from Docker to local..."
+	docker cp node1:/app/dev-explorer/. ../../canopy/web/explorer-new/
+
+dev-sync-wallet:
+	@echo "Syncing wallet changes from Docker to local..."
+	docker cp node1:/app/dev-wallet/. ../../canopy/web/wallet/
+
+dev-sync-all:
+	@echo "Syncing all development changes..."
+	make dev-sync-explorer
+	make dev-sync-wallet
+
+dev-rebuild-explorer:
+	@echo "Rebuilding explorer inside Docker..."
+	docker exec -it node1 sh -c "cd /app/dev-explorer && npm install && npm run build"
+
+dev-rebuild-wallet:
+	@echo "Rebuilding wallet inside Docker..."
+	docker exec -it node1 sh -c "cd /app/dev-wallet && npm install && npm run build"
+
+dev-rebuild-all:
+	@echo "Rebuilding all projects inside Docker..."
+	make dev-rebuild-explorer
+	make dev-rebuild-wallet
+
 start_with_snapshot:
 	@echo "Checking for existing canopy data directories..."
 	@if [ -d "../canopy_data/node1/canopy" ]; then \
@@ -51,11 +105,6 @@ start_with_snapshot:
 		echo "Found existing canopy data in node2. Do you want to delete it? (y/N): "; \
 		read confirm; \
 		if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
-			echo "Stopping node2 for downloading latest snapshot data chainID: 2"; \
-			docker compose stop node2; \
-			rm -rf ../canopy_data/node2/canopy/; \
-			echo "Deleted node2 canopy data."; \
-		else \
 			echo "Keeping existing node2 data."; \
 		fi; \
 	fi
