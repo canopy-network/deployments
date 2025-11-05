@@ -105,7 +105,6 @@ services:
   grafana:
     image: grafana/grafana:12.2.0-16557133545
     container_name: grafana 
-    user: root
     ports:
     -  "3000:3000"
     volumes:

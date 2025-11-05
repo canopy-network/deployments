@@ -240,12 +240,13 @@ cli
 
 # monitoring stack data
 monitoring-stack/loadbalancer/certs/
-monitoring-stack/monitoring/grafana/data/
 monitoring-stack/monitoring/prometheus/data/*
 monitoring-stack/monitoring/loki/data/*
+monitoring-stack/monitoring/grafana/data/*
 
 !monitoring-stack/monitoring/prometheus/data/.gitkeep
 !monitoring-stack/monitoring/loki/data/.gitkeep
+!monitoring-stack/monitoring/grafana/data/.gitkeep
 
 
 # End of https://www.toptal.com/developers/gitignore/api/python,vim,go
