@@ -93,3 +93,7 @@ start_with_snapshot:
 
 	echo "Restarting node2 and whole stack"
 	docker compose up -d
+fix_perm:
+        chown  65534:65534 -R ./monitoring/prometheus/data/
+	chown 10001:10001 -R ./monitoring/loki/data
+	chown 472:472 -R ./monitoring/grafana/
