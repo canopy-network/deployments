@@ -16,7 +16,6 @@ services:
     container_name: node1
     hostname: node1
     image: canopynetwork/canopy:latest
-    restart: always
       # This is just here as an example on how to build from a branch
       #build:
       #context: ../docker_image
@@ -50,7 +49,6 @@ services:
     container_name: node2
     hostname: node2
     image: canopynetwork/canopy:latest
-    restart: always
       # This is just here as an example on how to build from a branch
       # build:
       # context: ../docker_image
