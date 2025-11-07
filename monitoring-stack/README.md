@@ -425,4 +425,6 @@ For ex.: to access loki logs on node1 after you executed the docker-compose up c
 #### Permission migration issues Loki/prometheus/grafana
 
 
-After fix  `fix/loki-prometheus` as node runner you are required to stop your stack and run  `make fix_perm` to assign default user ID permissions to loki/prom/grafana  
+After fix  `fix/loki-prometheus` as node runner you are required to stop your stack and run  `make fix_perm` to assign default user ID permissions to loki/prom/grafana 
+
+It will probably require `sudo make fix_perm` depending on your setup 
