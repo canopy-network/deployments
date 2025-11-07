@@ -416,3 +416,13 @@ We use loki for logs which takes all the stdout from the containers and sends it
 
 
 For ex.: to access loki logs on node1 after you executed the docker-compose up command you should see it [here](http://localhost:3000/explore?schemaVersion=1&panes=%7B%225v4%22:%7B%22datasource%22:%22beh1gkva12hvkd%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bcompose_service%3D%5C%22node2%5C%22%7D%20%7C%3D%20%60%60%22,%22queryType%22:%22range%22,%22datasource%22:%7B%22type%22:%22loki%22,%22uid%22:%22beh1gkva12hvkd%22%7D,%22editorMode%22:%22builder%22,%22direction%22:%22backward%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D%7D&orgId=1)
+
+
+
+## Migration and notes
+
+
+#### Permission migration issues Loki/prometheus/grafana
+
+
+After fix  `fix/loki-prometheus` as node runner you are required to stop your stack and run  `make fix_perm` to assign default user ID permissions to loki/prom/grafana  
