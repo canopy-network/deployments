@@ -16,7 +16,7 @@ services:
     container_name: node1
     hostname: node1
     image: canopynetwork/canopy:latest
-    restart: always
+      # This is just here as an example on how to build from a branch
       #build:
       #context: ../docker_image
         #dockerfile: ./Dockerfile
@@ -39,12 +39,17 @@ services:
       - ../canopy_data/node1:/root/.canopy
       - ../docker_image/entrypoint.sh:/app/entrypoint.sh
     logging: *loki-logging
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
 
   node2:
     container_name: node2
     hostname: node2
     image: canopynetwork/canopy:latest
-    restart: always
+      # This is just here as an example on how to build from a branch
       # build:
       # context: ../docker_image
         #dockerfile: ./Dockerfile
@@ -68,6 +73,11 @@ services:
       - ../canopy_data/node2:/root/.canopy
       - ../docker_image/entrypoint.sh:/app/entrypoint.sh
     logging: *loki-logging
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
 
   traefik:
     cpus: 2
