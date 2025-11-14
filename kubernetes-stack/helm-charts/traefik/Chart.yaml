@@ -1,0 +1,17 @@
+apiVersion: v2
+name: traefik
+description: A Helm chart for Traefik load balancer and reverse proxy
+type: application
+version: 0.1.0
+appVersion: "3.0"
+keywords:
+  - traefik
+  - loadbalancer
+  - reverse-proxy
+  - ingress
+home: https://traefik.io/
+sources:
+  - https://github.com/traefik/traefik
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net 

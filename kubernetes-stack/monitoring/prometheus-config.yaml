@@ -1,0 +1,93 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    # my global config
+    global:
+      scrape_interval:     15s # By default, scrape targets every 15 seconds.
+      evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+      scrape_timeout: 15s
+      # scrape_timeout is set to the global default (10s).
+
+      # Attach these labels to any time series or alerts when communicating with
+      # external systems (federation, remote storage, Alertmanager).
+      external_labels:
+          monitor: 'my-project'
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+
+    rule_files:
+      - "alert_rules.yml"
+
+    # A scrape configuration containing exactly one endpoint to scrape:
+    # Here it's Prometheus itself.
+    scrape_configs:
+      - job_name: 'cadvisor'
+        static_configs:
+          - targets: ['cadvisor.monitoring.svc.cluster.local:8080']
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['node-exporter.monitoring.svc.cluster.local:9100']
+      - job_name: 'haproxy'
+        static_configs:
+          - targets: ['haproxy.monitoring.svc.cluster.local:8082']
+      
+      - job_name: 'blackbox'
+        metrics_path: '/metrics'
+        static_configs:
+          - targets:
+            - blackbox.monitoring.svc.cluster.local:9115
+
+      - job_name: 'canopy'
+        static_configs:
+          - targets:
+            - node1.canopy.svc.cluster.local:9090
+            - node2.canopy.svc.cluster.local:9090
+            - node3.canopy.svc.cluster.local:9090
+
+      - job_name: 'blackbox_explorer_wallet_check'
+        metrics_path: /probe
+        params:
+          module: [http_200]  # Look for a HTTP 200 response.
+        tls_config:
+          insecure_skip_verify: true
+        static_configs:
+          - targets:
+            - http://node1.canopy.svc.cluster.local:50000    # Target to probe with http.
+            - http://node1.canopy.svc.cluster.local:50001    # Target to probe with http.
+            - http://node2.canopy.svc.cluster.local:40000    # Target to probe with http.
+            - http://node2.canopy.svc.cluster.local:40001    # Target to probe with http.
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: "blackbox.monitoring.svc.cluster.local:9115"  # Blackbox exporter.
+          - target_label: region
+            replacement: "local"
+
+      - job_name: 'blackbox_rpc_height'
+        metrics_path: /probe
+        params:
+          module: [check_canopy_block_2xx]  # Look for a HTTP 200 response.
+        tls_config:
+          insecure_skip_verify: true
+        static_configs:
+          - targets:
+            - http://node1.canopy.svc.cluster.local:50002/v1/query/height    # Target to probe with http.
+            - http://node2.canopy.svc.cluster.local:40002/v1/query/height   # Target to probe with http.
+            # targets here
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: "blackbox.monitoring.svc.cluster.local:9115" 

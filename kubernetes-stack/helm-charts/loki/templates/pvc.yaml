@@ -1,0 +1,16 @@
+{{- if .Values.server.persistentVolume.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "loki.fullname" . }}-data
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "loki.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.server.persistentVolume.accessMode }}
+  storageClassName: {{ .Values.server.persistentVolume.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.server.persistentVolume.size }}
+{{- end }} 

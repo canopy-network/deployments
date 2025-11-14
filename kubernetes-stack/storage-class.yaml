@@ -1,0 +1,225 @@
+# PersistentVolumes for Canopy nodes
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: canopy-data-canopy-node-0
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: openebs-hostpath 
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: canopy-data-canopy-node-1
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: openebs-hostpath
+  local:
+    path: /data/canopy/node1
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node1  # Replace with your actual node name
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: canopy-data-canopy-node-2
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: openebs-hostpath
+  local:
+    path: /data/canopy/node2
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node1  # Replace with your actual node name
+---
+# PersistentVolumes for Monitoring components
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prometheus-data
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: openebs-hostpath
+  local:
+    path: /data/monitoring/prometheus
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node1  # Replace with your actual node name
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: grafana-data
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: openebs-hostpath
+  local:
+    path: /data/monitoring/grafana
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node1  # Replace with your actual node name
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: loki-data
+spec:
+  capacity:
+    storage: 50Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: openebs-hostpath
+  local:
+    path: /data/monitoring/loki
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+          - node1  # Replace with your actual node name
+
+# Alternative: Local Path Provisioner for kubeadm clusters
+# This is the recommended approach for vanilla Kubernetes clusters
+# Install with: kubectl apply -f https://raw.githubusercontent.com/rancher/local-path-provisioner/v0.0.28/deploy/local-path-storage.yaml
+
+# For hostPath-based storage (less recommended for production)
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: openebs-hostpath
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+
+---
+# Alternative: OpenEBS Local PV (for production)
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: openebs-hostpath
+# provisioner: openebs.io/local
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# parameters:
+#   StorageType: "hostpath"
+#   BasePath: "/var/openebs/local"
+
+---
+# Alternative: Longhorn (distributed storage for production)
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: openebs-hostpath
+# provisioner: driver.longhorn.io
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+# volumeBindingMode: Immediate
+# parameters:
+#   numberOfReplicas: "3"
+#   staleReplicaTimeout: "2880" # 48 hours in minutes
+#   fromBackup: ""
+
+# Alternative storage class for cloud providers
+# Uncomment and modify based on your cloud provider
+
+# For AWS EKS
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: openebs-hostpath
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "true"
+# provisioner: ebs.csi.aws.com
+# parameters:
+#   type: gp3
+#   fsType: ext4
+#   encrypted: "true"
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Retain
+
+# For Google GKE
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: standard
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "true"
+# provisioner: pd.csi.storage.gke.io
+# parameters:
+#   type: pd-standard
+#   fstype: ext4
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Retain
+
+# For Azure AKS
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: standard
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "true"
+# provisioner: disk.csi.azure.com
+# parameters:
+#   storageaccounttype: Standard_LRS
+#   kind: Managed
+#   fsType: ext4
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Retain
+
+# For on-premise with local storage
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: standard
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "true"
+# provisioner: kubernetes.io/no-provisioner
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: false
+# reclaimPolicy: Retain 

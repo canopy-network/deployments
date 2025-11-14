@@ -1,0 +1,273 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: canopy-localnet-node
+  namespace: canopy-localnet
+spec:
+  serviceName: canopy-localnet-node-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: canopy-localnet-node
+  template:
+    metadata:
+      labels:
+        app: canopy-localnet-node
+    spec:
+      imagePullSecrets:
+      - name: docker-registry-secret
+      # Tolerations for control-plane taint
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+      volumes:
+      - name: canopy-localnet-genesis
+        configMap:
+          name: canopy-localnet-genesis
+      - name: canopy-localnet-config-template
+        configMap:
+          name: canopy-localnet-config-template
+      - name: node1-validator-key
+        configMap:
+          name: canopy-localnet-node1-validator-key
+      - name: node1-keystore
+        configMap:
+          name: canopy-localnet-node1-keystore
+      - name: node2-validator-key
+        configMap:
+          name: canopy-localnet-node2-validator-key
+      - name: node2-keystore
+        configMap:
+          name: canopy-localnet-node2-keystore
+      - name: node3-validator-key
+        configMap:
+          name: canopy-localnet-node3-validator-key
+      - name: node3-keystore
+        configMap:
+          name: canopy-localnet-node3-keystore
+      initContainers:
+      - name: setup-localnet-config
+        image: busybox:1.35
+        command: ["/bin/sh", "/configs/setup-localnet-config.sh"]
+        volumeMounts:
+        - name: canopy-localnet-config-template
+          mountPath: /configs
+        - name: canopy-data
+          mountPath: /root/.canopy/
+        - name: node1-validator-key
+          mountPath: /validator-keys/node1
+        - name: node1-keystore
+          mountPath: /keystores/node1
+        - name: node2-validator-key
+          mountPath: /validator-keys/node2
+        - name: node2-keystore
+          mountPath: /keystores/node2
+        - name: node3-validator-key
+          mountPath: /validator-keys/node3
+        - name: node3-keystore
+          mountPath: /keystores/node3
+      containers:
+      - name: canopy
+        image: canopynetwork/canopy:latest
+        imagePullPolicy: Always
+        command: ["/app/bin"]
+        args: ["start"]
+        ports:
+        - containerPort: 50000  # Wallet
+          name: wallet
+        - containerPort: 50001  # Explorer
+          name: explorer
+        - containerPort: 50002  # RPC
+          name: rpc
+        - containerPort: 50003  # Admin RPC
+          name: admin-rpc
+        - containerPort: 9001   # TCP P2P
+          name: p2p
+        - containerPort: 9090   # Metrics
+          name: metrics
+        env:
+        - name: EXPLORER_BASE_PATH
+          value: "/"
+        - name: WALLET_BASE_PATH
+          value: "/"
+        - name: BUILD_PATH
+          value: "cmd/cli"
+        - name: BIN_PATH
+          value: "/usr/local/bin"
+        - name: BRANCH
+          value: "latest"
+        volumeMounts:
+        - name: canopy-data
+          mountPath: /root/.canopy
+        - name: canopy-localnet-genesis
+          mountPath: /root/.canopy/genesis.json
+          subPath: genesis.json
+        resources:
+          limits:
+            memory: "3Gi"
+            cpu: "2"
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+  volumeClaimTemplates:
+  - metadata:
+      name: canopy-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canopy-localnet-node-headless
+  namespace: canopy-localnet
+spec:
+  clusterIP: None
+  selector:
+    app: canopy-localnet-node
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canopy-localnet-node
+  namespace: canopy-localnet
+spec:
+  selector:
+    app: canopy-localnet-node
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localnet-node1
+  namespace: canopy-localnet
+spec:
+  selector:
+    app: canopy-localnet-node
+    statefulset.kubernetes.io/pod-name: canopy-localnet-node-0
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localnet-node2
+  namespace: canopy-localnet
+spec:
+  selector:
+    app: canopy-localnet-node
+    statefulset.kubernetes.io/pod-name: canopy-localnet-node-1
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: localnet-node3
+  namespace: canopy-localnet
+spec:
+  selector:
+    app: canopy-localnet-node
+    statefulset.kubernetes.io/pod-name: canopy-localnet-node-2
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+

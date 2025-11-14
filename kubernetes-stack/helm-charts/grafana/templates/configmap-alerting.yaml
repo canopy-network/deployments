@@ -1,0 +1,12 @@
+{{- if .Values.alerting.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana.fullname" . }}-alerting
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+data:
+  alert-rules.yaml: |
+    {{- toYaml .Values.alerting.config | nindent 4 }}
+{{- end }} 

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "traefik.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "traefik.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.ports.web.port }}
+      targetPort: {{ .Values.service.ports.web.targetPort }}
+      protocol: TCP
+      name: web
+    - port: {{ .Values.service.ports.websecure.port }}
+      targetPort: {{ .Values.service.ports.websecure.targetPort }}
+      protocol: TCP
+      name: websecure
+    - port: {{ .Values.service.ports.metrics.port }}
+      targetPort: {{ .Values.service.ports.metrics.targetPort }}
+      protocol: TCP
+      name: metrics
+  selector:
+    {{- include "traefik.selectorLabels" . | nindent 4 }} 

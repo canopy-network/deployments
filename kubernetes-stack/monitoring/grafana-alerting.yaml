@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-alerting
+  namespace: monitoring
+data:
+  alert-rules.yaml: |
+    apiVersion: 1
+    groups:
+      - name: Canopy
+        folder: Canopy
+        interval: 1m
+        rules:
+          - name: Canopy Node Disk Usage High
+            condition: A
+            for: 5m
+            uid: canopy_disk_usage_high
+            title: Canopy Node Disk Usage High
+            data:
+              - refId: A
+                queryType: ""
+                relativeTimeRange:
+                  from: 300
+                  to: 0
+                datasourceUid: prometheus
+                model:
+                  expr: |
+                    (node_filesystem_avail_bytes{job="node-exporter", mountpoint="/"} / node_filesystem_size_bytes{job="node-exporter", mountpoint="/"} * 100) > 80
+                  intervalMs: 1000
+                  maxDataPoints: 43200
+                  refId: A
+            noDataState: NoData
+            execErrState: Alerting
+            for: 5m
+            annotations:
+              summary: Canopy node disk usage is above 80%
+              description: Canopy node {{ $labels.instance }} has disk usage above 80% ({{ $value }}% available)
+            labels:
+              severity: warning
+              team: canopy 

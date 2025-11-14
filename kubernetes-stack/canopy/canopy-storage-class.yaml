@@ -1,0 +1,78 @@
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: canopy-storage
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "false"
+    description: "Storage class optimized for Canopy blockchain nodes"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: false
+reclaimPolicy: Retain
+---
+# Alternative: Local Path Provisioner version (for automatic provisioning)
+# Uncomment this section if you want automatic provisioning instead of manual PVs
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: canopy-storage
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "false"
+#     description: "Storage class optimized for Canopy blockchain nodes"
+# provisioner: rancher.io/local-path
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Delete
+---
+# Alternative: Cloud provider versions
+# For AWS EKS
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: canopy-storage
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "false"
+#     description: "Storage class optimized for Canopy blockchain nodes"
+# provisioner: ebs.csi.aws.com
+# parameters:
+#   type: gp3
+#   fsType: ext4
+#   encrypted: "true"
+#   iops: "3000"
+#   throughput: "125"
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Retain
+---
+# For Google GKE
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: canopy-storage
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "false"
+#     description: "Storage class optimized for Canopy blockchain nodes"
+# provisioner: pd.csi.storage.gke.io
+# parameters:
+#   type: pd-ssd
+#   fstype: ext4
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Retain
+---
+# For Azure AKS
+# apiVersion: storage.k8s.io/v1
+# kind: StorageClass
+# metadata:
+#   name: canopy-storage
+#   annotations:
+#     storageclass.kubernetes.io/is-default-class: "false"
+#     description: "Storage class optimized for Canopy blockchain nodes"
+# provisioner: disk.csi.azure.com
+# parameters:
+#   storageaccounttype: Premium_LRS
+#   kind: Managed
+#   fsType: ext4
+# volumeBindingMode: WaitForFirstConsumer
+# allowVolumeExpansion: true
+# reclaimPolicy: Retain 

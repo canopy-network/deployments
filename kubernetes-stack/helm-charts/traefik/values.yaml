@@ -1,0 +1,156 @@
+# Traefik Helm Chart Values - Local Development Configuration
+# This file contains the default values for the Traefik chart
+
+# Traefik deployment configuration
+deployment:
+  image:
+    repository: traefik
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  
+  replicas: 1
+  
+  resources:
+    limits:
+      memory: "2Gi"
+      cpu: "2"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+
+# Service configuration
+service:
+  type: LoadBalancer
+  ports:
+    web:
+      port: 80
+      targetPort: 80
+    websecure:
+      port: 443
+      targetPort: 443
+    metrics:
+      port: 8082
+      targetPort: 8082
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: "traefik"
+  annotations: {}
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Security context
+securityContext:
+  runAsUser: 65532
+  runAsGroup: 65532
+  runAsNonRoot: true
+
+# Pod security context
+podSecurityContext:
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Traefik configuration
+config:
+  log:
+    level: INFO
+  
+  metrics:
+    prometheus:
+      buckets:
+        - 0.1
+        - 0.3
+        - 1.2
+        - 5.0
+      entryPoint: metrics
+      addEntryPointsLabels: true
+      addRoutersLabels: true
+      addServicesLabels: true
+  
+  ping:
+    entryPoint: "ping"
+    manualRouting: true
+    terminatingStatusCode: 200
+  
+  api:
+    dashboard: true
+    insecure: true  # Enable insecure dashboard for local development
+  
+  serversTransport:
+    insecureSkipVerify: true
+  
+  entryPoints:
+    web:
+      address: ":80"
+    websecure:
+      address: ":443"
+    metrics:
+      address: ":8082"
+  
+  # Disable ACME for local development
+  # certificatesResolvers:
+  #   https-resolver:
+  #     acme:
+  #       email: "admin@nodefleet.net"
+  #       storage: "/data/acme.json"
+  #       httpChallenge:
+  #         entryPoint: web
+  
+  providers:
+    file:
+      directory: /etc/traefik/routes
+      watch: true
+
+# Persistent volume for ACME certificates (disabled for local dev)
+persistence:
+  enabled: false
+  size: 1Gi
+  storageClass: "standard"
+  accessMode: ReadWriteOnce
+
+# Ingress configuration for Traefik dashboard
+dashboard:
+  enabled: true
+  domain: "localhost"  # Use localhost for local development
+  basicAuth:
+    enabled: false  # Disable auth for local development
+
+# Domain configuration for services
+domain: "localhost"  # Use localhost for local development
+
+# Canopy services configuration
+canopy:
+  # Number of nodes to configure routes for
+  nodeCount: 5  # Match your current deployment
+  
+  # Basic auth for wallet endpoints (disabled for local dev)
+  basicAuth:
+    enabled: false
+
+# Monitoring configuration
+monitoring:
+  enabled: true
+  grafana:
+    service: "grafana.monitoring.svc.cluster.local:3000"
+
+# Middlewares configuration
+middlewares:
+  httpsRedirect:
+    enabled: false  # Disable HTTPS redirect for local development
+  basicAuth:
+    enabled: false  # Disable basic auth for local development
+  websocketHeaders:
+    enabled: true 

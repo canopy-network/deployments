@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "grafana.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "grafana.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "grafana.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "grafana.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: grafana
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+          name: http
+        {{- if .Values.probes.liveness.enabled }}
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          successThreshold: {{ .Values.probes.liveness.successThreshold }}
+        {{- end }}
+        {{- if .Values.probes.readiness.enabled }}
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          successThreshold: {{ .Values.probes.readiness.successThreshold }}
+        {{- end }}
+        env:
+        {{- range $key, $value := .Values.server.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        volumeMounts:
+        - name: grafana-data
+          mountPath: /var/lib/grafana
+        {{- if .Values.datasources.enabled }}
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        {{- end }}
+        {{- if .Values.dashboards.enabled }}
+        - name: grafana-dashboards
+          mountPath: /etc/grafana/provisioning/dashboards
+        {{- end }}
+        {{- if .Values.alerting.enabled }}
+        - name: grafana-alerting
+          mountPath: /etc/grafana/provisioning/alerting
+        {{- end }}
+        resources:
+          {{- toYaml .Values.server.resources | nindent 10 }}
+      volumes:
+      - name: grafana-data
+        {{- if .Values.server.persistentVolume.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ include "grafana.fullname" . }}-data
+        {{- else }}
+        emptyDir: {}
+        {{- end }}
+      {{- if .Values.datasources.enabled }}
+      - name: grafana-datasources
+        configMap:
+          name: {{ include "grafana.fullname" . }}-datasources
+      {{- end }}
+      {{- if .Values.dashboards.enabled }}
+      - name: grafana-dashboards
+        configMap:
+          name: {{ include "grafana.fullname" . }}-dashboards
+      {{- end }}
+      {{- if .Values.alerting.enabled }}
+      - name: grafana-alerting
+        configMap:
+          name: {{ include "grafana.fullname" . }}-alerting
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

@@ -1,0 +1,99 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canopy-localnet-config-template
+  namespace: canopy-localnet
+data:
+  config-template.json: |
+    {
+      "logLevel": "debug",
+      "chainId": 1,
+      "sleepUntil": 0,
+      "rootChain": [
+        {
+          "chainId": 1,
+          "url": "http://PLACEHOLDER_NODE_HOSTNAME:50002"
+        }
+      ],
+      "runVDF": true,
+      "headless": false,
+      "walletPort": "50000",
+      "explorerPort": "50001",
+      "rpcPort": "50002",
+      "adminPort": "50003",
+      "rpcURL": "PLACEHOLDER_RPC_URL",
+      "adminRPCURL": "PLACEHOLDER_ADMIN_RPC_URL",
+      "rootChainPollMS": 333,
+      "timeoutS": 3,
+      "dataDirPath": "/root/.canopy",
+      "dbName": "canopy",
+      "inMemory": false,
+      "networkID": 1,
+      "listenAddress": "0.0.0.0:9001",
+      "externalAddress": "PLACEHOLDER_EXTERNAL_ADDRESS",
+      "maxInbound": 21,
+      "maxOutbound": 7,
+      "trutedPeersIDs": null,
+      "dialPeers": [],
+      "bannedPeersIDs": null,
+      "bannedIPs": null,
+      "newHeightTimeoutMS": 2000,
+      "electionTimeoutMS": 2000,
+      "electionVoteTimeoutMS": 2000,
+      "proposeTimeoutMS": 4000,
+      "proposeVoteTimeoutMS": 4000,
+      "precommitTimeoutMS": 2000,
+      "precommitVoteTimeoutMS": 2000,
+      "commitTimeoutMS": 2000,
+      "roundInterruptTimeoutMS": 2000,
+      "maxTotalBytes": 10000000,
+      "maxTransactionCount": 5000,
+      "individualMaxTxSize": 4000,
+      "dropPercentage": 35
+    }
+  setup-localnet-config.sh: |
+    #!/bin/sh
+    set -e
+    
+    # Get the pod ordinal (0, 1, 2) from hostname
+    POD_ORDINAL=$(echo $HOSTNAME | rev | cut -d'-' -f1 | rev)
+    NODE_NUM=$((POD_ORDINAL + 1))
+    
+    echo "Setting up localnet config for node $NODE_NUM (pod ordinal: $POD_ORDINAL)"
+    echo "Full hostname: $HOSTNAME"
+    
+    # Create the canopy directory if it doesn't exist
+    mkdir -p /root/.canopy
+    
+    # Copy the template and customize it for this node
+    cp /configs/config-template.json /root/.canopy/config.json
+    
+    # Copy validator key and keystore for this specific node
+    cp /validator-keys/node${NODE_NUM}/validator_key.json /root/.canopy/validator_key.json
+    cp /keystores/node${NODE_NUM}/keystore.json /root/.canopy/keystore.json
+    
+    # Dynamic values based on hostname
+    NODE_SERVICE_NAME="localnet-node${NODE_NUM}"
+    NODE_HOSTNAME="${NODE_SERVICE_NAME}.canopy-localnet.svc.cluster.local"
+    RPC_URL="http://${NODE_SERVICE_NAME}.canopy-localnet.svc.cluster.local:50002"
+    ADMIN_RPC_URL="http://${NODE_SERVICE_NAME}.canopy-localnet.svc.cluster.local:50003"
+    EXTERNAL_ADDRESS="tcp://${NODE_SERVICE_NAME}.canopy-localnet.svc.cluster.local:9001"
+    
+    echo "Configuring node $NODE_NUM with:"
+    echo "  RPC URL: $RPC_URL"
+    echo "  Admin RPC URL: $ADMIN_RPC_URL"
+    echo "  External Address: $EXTERNAL_ADDRESS"
+    
+    # Replace placeholders using sed
+    sed -i "s#PLACEHOLDER_EXTERNAL_ADDRESS#$EXTERNAL_ADDRESS#g" /root/.canopy/config.json
+    sed -i "s#PLACEHOLDER_RPC_URL#$RPC_URL#g" /root/.canopy/config.json
+    sed -i "s#PLACEHOLDER_ADMIN_RPC_URL#$ADMIN_RPC_URL#g" /root/.canopy/config.json
+    sed -i "s#PLACEHOLDER_NODE_HOSTNAME#$NODE_HOSTNAME#g" /root/.canopy/config.json
+    
+    # Update networkID to match node number for localnet
+    sed -i "s|\"networkID\": [0-9]*|\"networkID\": $NODE_NUM|g" /root/.canopy/config.json
+    
+    echo "Config setup complete for localnet node $NODE_NUM"
+    echo "Files in /root/.canopy:"
+    ls -la /root/.canopy/
+

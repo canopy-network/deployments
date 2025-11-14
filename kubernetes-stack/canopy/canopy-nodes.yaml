@@ -1,0 +1,280 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: canopy-node
+  namespace: canopy
+spec:
+  serviceName: canopy-node-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: canopy-node
+  template:
+    metadata:
+      labels:
+        app: canopy-node
+    spec:
+      imagePullSecrets:
+      - name: docker-registry-secret
+      # Tolerations for control-plane taint
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+      # Node affinity to prefer worker nodes but allow control-plane if needed
+      #      affinity:
+      #        nodeAffinity:
+      #          preferredDuringSchedulingIgnoredDuringExecution:
+      #          - weight: 100
+      #            preference:
+      #              matchExpressions:
+      #              - key: node-role.kubernetes.io/worker
+      #                operator: Exists
+      #          - weight: 50
+      #            preference:
+      #              matchExpressions:
+      #              - key: node-role.kubernetes.io/control-plane
+      #                operator: Exists
+      #        # Pod anti-affinity to spread canopy nodes across nodes
+      #        podAntiAffinity:
+      #          preferredDuringSchedulingIgnoredDuringExecution:
+      #          - weight: 100
+      #            podAffinityTerm:
+      #              labelSelector:
+      #                matchExpressions:
+      #                - key: app
+      #                  operator: In
+      #                  values:
+      #                  - canopy-node
+      #              topologyKey: kubernetes.io/hostname
+      volumes:
+      - name: canopy-genesis
+        configMap:
+          name: canopy-genesis
+      - name: canopy-config-template
+        configMap:
+          name: canopy-config-template
+      initContainers:
+      - name: setup-config
+        image: busybox:1.35
+        command: ["/bin/sh", "/configs/setup-config.sh"]
+        volumeMounts:
+        - name: canopy-config-template
+          mountPath: /configs
+        - name: canopy-data
+          mountPath: /root/.canopy/ 
+      containers:
+      - name: canopy
+        image: nodefleet/canopy:latest
+        imagePullPolicy: Always
+        command: ["/app/bin"]
+        args: ["start"]
+        ports:
+        - containerPort: 50000  # Wallet
+          name: wallet
+        - containerPort: 50001  # Explorer
+          name: explorer
+        - containerPort: 50002  # RPC
+          name: rpc
+        - containerPort: 50003  # Admin RPC
+          name: admin-rpc
+        - containerPort: 9001   # TCP P2P
+          name: p2p
+        - containerPort: 9090   # Metrics
+          name: metrics
+        env:
+        - name: EXPLORER_BASE_PATH
+          value: "/"
+        - name: WALLET_BASE_PATH
+          value: "/"
+        - name: BUILD_PATH
+          value: "cmd/cli"
+        - name: BIN_PATH
+          value: "/usr/local/bin"
+        - name: BRANCH
+          value: "no-sync-issue"
+        volumeMounts:
+        - name: canopy-data
+          mountPath: /root/.canopy
+        - name: canopy-genesis
+          mountPath: /root/.canopy/genesis.json
+          subPath: genesis.json
+        resources:
+          limits:
+            memory: "3Gi"
+            cpu: "2"
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+#        livenessProbe:
+#          httpGet:
+#            path: /health
+#            port: 9090
+#          initialDelaySeconds: 30
+#          periodSeconds: 10
+#        readinessProbe:
+#          httpGet:
+#            path: /ready
+#            port: 9090
+#          initialDelaySeconds: 5
+#          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: canopy-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canopy-node-headless
+  namespace: canopy
+spec:
+  clusterIP: None
+  selector:
+    app: canopy-node
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canopy-node
+  namespace: canopy
+spec:
+  selector:
+    app: canopy-node
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node1
+  namespace: canopy
+spec:
+  selector:
+    app: canopy-node
+    statefulset.kubernetes.io/pod-name: canopy-node-0
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node2
+  namespace: canopy
+spec:
+  selector:
+    app: canopy-node
+    statefulset.kubernetes.io/pod-name: canopy-node-1
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: node3
+  namespace: canopy
+spec:
+  selector:
+    app: canopy-node
+    statefulset.kubernetes.io/pod-name: canopy-node-2
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP 

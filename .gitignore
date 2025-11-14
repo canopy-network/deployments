@@ -243,4 +243,75 @@ monitoring-stack/loadbalancer/certs/
 monitoring-stack/monitoring/grafana/data/
 monitoring-stack/monitoring/prometheus/data/
 
+# kubernetes-stack secrets
+kubernetes-stack/secrets/*.yaml
+kubernetes-stack/secrets/*.yml
+kubernetes-stack/secrets/*.json
+kubernetes-stack/secrets/*.key
+kubernetes-stack/secrets/*.pem
+kubernetes-stack/secrets/*.crt
+kubernetes-stack/secrets/*.cert
+kubernetes-stack/secrets/*.p12
+kubernetes-stack/secrets/*.pfx
+kubernetes-stack/secrets/*.jks
+!kubernetes-stack/secrets/*-template.yaml
+!kubernetes-stack/secrets/*-template.yml
+!kubernetes-stack/secrets/*.example
+!kubernetes-stack/secrets/*.sample
+
+# kubernetes-stack generated files with secrets
+kubernetes-stack/canopy-localnet-genesis-keys.yaml
+kubernetes-stack/*-genesis-keys.yaml
+
+# kubernetes-stack localnet files (contains sensitive keys)
+kubernetes-stack/localnet-files/
+kubernetes-stack/localnet-files/**/*
+
+# kubernetes-stack generated secret files
+kubernetes-stack/*secret*.yaml
+kubernetes-stack/*secret*.yml
+kubernetes-stack/*-secret.yaml
+kubernetes-stack/*-secret.yml
+!kubernetes-stack/*-secret-template.yaml
+!kubernetes-stack/*-secret-template.yml
+
+# kubernetes-stack sensitive config files
+kubernetes-stack/*.key
+kubernetes-stack/*.pem
+kubernetes-stack/*.crt
+kubernetes-stack/*.cert
+kubernetes-stack/*.p12
+kubernetes-stack/*.pfx
+kubernetes-stack/*.jks
+kubernetes-stack/*.env
+kubernetes-stack/.env
+kubernetes-stack/.env.*
+
+# kubernetes-stack docker config (may contain credentials)
+kubernetes-stack/.docker/
+kubernetes-stack/.dockerconfigjson
+kubernetes-stack/config.json
+
+# kubernetes-stack temporary and backup files (may contain secrets)
+kubernetes-stack/*.tmp
+kubernetes-stack/*.temp
+kubernetes-stack/*.bak
+kubernetes-stack/*.backup
+kubernetes-stack/*~
+kubernetes-stack/.*.swp
+kubernetes-stack/.*.swo
+
+# kubernetes-stack SSH keys and certificates
+kubernetes-stack/*.id_rsa
+kubernetes-stack/*.id_ed25519
+kubernetes-stack/*.id_ecdsa
+kubernetes-stack/*.id_dsa
+kubernetes-stack/*.ppk
+kubernetes-stack/known_hosts
+
+# kubernetes-stack kubeconfig files
+kubernetes-stack/*.kubeconfig
+kubernetes-stack/kubeconfig
+kubernetes-stack/.kube/
+
 # End of https://www.toptal.com/developers/gitignore/api/python,vim,go

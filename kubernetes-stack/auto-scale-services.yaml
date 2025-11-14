@@ -1,0 +1,111 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: canopy-service-generator
+  namespace: canopy
+spec:
+  template:
+    spec:
+      serviceAccountName: canopy-service-generator
+      containers:
+      - name: service-generator
+        image: bitnami/kubectl:latest
+        command: ["/bin/bash"]
+        args:
+        - -c
+        - |
+          echo "🔄 Auto-generating services for scaled canopy nodes..."
+          
+          # Function to create service for a node
+          create_service() {
+            local node_num=$1
+            cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: node${node_num}
+            namespace: canopy
+            labels:
+              app: canopy-node
+              node: node${node_num}
+          spec:
+            selector:
+              app: canopy-node
+              statefulset.kubernetes.io/pod-name: canopy-node-$((node_num-1))
+            ports:
+            - name: wallet
+              port: 50000
+              targetPort: 50000
+            - name: explorer
+              port: 50001
+              targetPort: 50001
+            - name: rpc
+              port: 50002
+              targetPort: 50002
+            - name: admin-rpc
+              port: 50003
+              targetPort: 50003
+            - name: p2p
+              port: 9001
+              targetPort: 9001
+            - name: metrics
+              port: 9090
+              targetPort: 9090
+            type: ClusterIP
+          EOF
+          }
+          
+          # Wait for StatefulSet to be ready
+          echo "Waiting for StatefulSet to be ready..."
+          kubectl wait --for=condition=ready pod -l app=canopy-node -n canopy --timeout=300s || echo "Some pods may still be starting"
+          
+          # Get current number of replicas
+          REPLICAS=$(kubectl get statefulset canopy-node -n canopy -o jsonpath='{.spec.replicas}')
+          echo "Current replicas: $REPLICAS"
+          
+          # Create services for all nodes
+          for i in $(seq 1 $REPLICAS); do
+            echo "Creating service for node$i..."
+            create_service $i
+          done
+          
+          echo "✅ Services created for $REPLICAS nodes"
+          
+          # Show created services
+          echo "Created services:"
+          kubectl get svc -l app=canopy-node -n canopy
+      restartPolicy: OnFailure
+  backoffLimit: 3
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: canopy-service-generator
+  namespace: canopy
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: canopy
+  name: canopy-service-generator
+rules:
+- apiGroups: [""]
+  resources: ["services", "pods"]
+  verbs: ["get", "list", "create", "update", "patch"]
+- apiGroups: ["apps"]
+  resources: ["statefulsets"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: canopy-service-generator
+  namespace: canopy
+subjects:
+- kind: ServiceAccount
+  name: canopy-service-generator
+  namespace: canopy
+roleRef:
+  kind: Role
+  name: canopy-service-generator
+  apiGroup: rbac.authorization.k8s.io 

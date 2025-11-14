@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "traefik.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "traefik.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      {{- include "traefik.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "traefik.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "traefik.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: traefik
+        image: "{{ .Values.deployment.image.repository }}:{{ .Values.deployment.image.tag }}"
+        imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
+        args:
+        - --configfile=/etc/traefik/traefik.yml
+        ports:
+        - containerPort: {{ .Values.service.ports.web.targetPort }}
+          name: web
+        - containerPort: {{ .Values.service.ports.websecure.targetPort }}
+          name: websecure
+        - containerPort: {{ .Values.service.ports.metrics.targetPort }}
+          name: metrics
+        volumeMounts:
+        - name: traefik-config
+          mountPath: /etc/traefik
+        - name: traefik-middlewares
+          mountPath: /etc/traefik/middlewares
+        - name: traefik-routes
+          mountPath: /etc/traefik/routes
+        {{- if .Values.persistence.enabled }}
+        - name: traefik-data
+          mountPath: /data
+        {{- end }}
+        resources:
+          {{- toYaml .Values.deployment.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /ping
+            port: {{ .Values.service.ports.metrics.targetPort }}
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        readinessProbe:
+          httpGet:
+            path: /ping
+            port: {{ .Values.service.ports.metrics.targetPort }}
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+      volumes:
+      - name: traefik-config
+        configMap:
+          name: {{ include "traefik.fullname" . }}-config
+      - name: traefik-middlewares
+        configMap:
+          name: {{ include "traefik.fullname" . }}-middlewares
+      - name: traefik-routes
+        configMap:
+          name: {{ include "traefik.fullname" . }}-routes
+      {{- if .Values.persistence.enabled }}
+      - name: traefik-data
+        persistentVolumeClaim:
+          claimName: {{ include "traefik.fullname" . }}-data
+      {{- else }}
+      - name: traefik-data
+        emptyDir: {}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }} 

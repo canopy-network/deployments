@@ -1,0 +1,259 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canopy-genesis
+  namespace: canopy
+data:
+  genesis.json: |
+    {
+      "time": "2024-12-14 20:10:52",
+      "accounts": [
+        {
+          "address": "851e90eaef1fa27debaee2c2591503bdeec1d123",
+          "amount": 1000000
+        },
+        {
+          "address": "02cd4e5eb53ea665702042a6ed6d31d616054dc5",
+          "amount": 1000000
+        },
+        {
+          "address": "6f94783856d5ce46d24dd5946215086211d70776",
+          "amount": 1000000
+        }
+      ],
+      "nonSigners": null,
+      "validators": [
+        {
+          "address": "851e90eaef1fa27debaee2c2591503bdeec1d123",
+          "publicKey": "b88a5928e54cbf0a36e0b98f5bcf02de9a9a1deba6994739f9160181a609f516eb702936a0cbf4c1f2e7e6be5b8272f2",
+          "committees": [
+            1,2
+          ],
+          "netAddress": "tcp://64.225.17.207",
+          "stakedAmount": 1000000000,
+          "output": "851e90eaef1fa27debaee2c2591503bdeec1d123"
+        },
+        {
+          "address": "02cd4e5eb53ea665702042a6ed6d31d616054dc5",
+          "publicKey": "98d45087a99bcbfde91993502e77dde869d4485c3778fe46513958320da560823d56a0108f4cf3513393f4d561bc489b",
+          "committees": [
+            1,2
+          ],
+          "netAddress": "tcp://159.89.181.58",
+          "stakedAmount": 1000000000,
+          "output": "02cd4e5eb53ea665702042a6ed6d31d616054dc5"
+        },
+        {
+          "address": "6f94783856d5ce46d24dd5946215086211d70776",
+          "publicKey": "abda38eb50fbe53db9e9c3b141c6a1ec54ad40a4840e34784c975da4ee175eb4c5dd10b6d759ae8fdf8bc22511bbd97b",
+          "committees": [
+            1,2
+          ],
+          "netAddress": "tcp://159.65.42.115",
+          "stakedAmount": 1000000000,
+          "output": "6f94783856d5ce46d24dd5946215086211d70776"
+        }
+      ],
+      "params": {
+        "Consensus": {
+          "blockSize": 1000000,
+          "protocolVersion": "1/0",
+          "rootChainId": 1,
+          "retired": 0
+        },
+        "Validator": {
+          "unstakingBlocks": 2,
+          "maxPauseBlocks": 4380,
+          "doubleSignSlashPercentage": 10,
+          "nonSignSlashPercentage": 1,
+          "maxNonSign": 4,
+          "nonSignWindow": 10,
+          "maxCommittees": 15,
+          "maxCommitteeSize": 100,
+          "earlyWithdrawalPenalty": 20,
+          "delegateUnstakingBlocks": 2,
+          "minimumOrderSize": 1000,
+          "stakePercentForSubsidizedCommittee": 33,
+          "maxSlashPerCommittee": 15,
+          "delegateRewardPercentage": 10,
+          "buyDeadlineBlocks": 15,
+          "lockOrderFeeMultiplier": 2
+        },
+        "Fee": {
+          "sendFee": 10000,
+          "stakeFee": 10000,
+          "editStakeFee": 10000,
+          "unstakeFee": 10000,
+          "pauseFee": 10000,
+          "unpauseFee": 10000,
+          "changeParameterFee": 10000,
+          "daoTransferFee": 10000,
+          "subsidyFee": 10000,
+          "createOrderFee": 10000,
+          "editOrderFee": 10000,
+          "deleteOrderFee": 10000
+        },
+        "Governance": {
+          "daoRewardPercentage": 10
+        }
+      },
+      "supply": null
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canopy-config-template
+  namespace: canopy
+data:
+  config-template.json: |
+    {
+      "logLevel": "debug",
+      "chainId": 1,
+      "sleepUntil": 0,
+      "rootChain": [
+        {
+          "chainId": 1,
+          "url": "http://PLACEHOLDER_NODE_HOSTNAME:50002"
+        },
+        {
+          "chainId": 2,
+          "url": "http://node2.canopy.svc.cluster.local:50002"
+        }
+      ],
+      "runVDF": true,
+      "headless": false,
+      "walletPort": "50000",
+      "explorerPort": "50001",
+      "rpcPort": "50002",
+      "adminPort": "50003",
+      "rpcURL": "PLACEHOLDER_RPC_URL",
+      "adminRPCURL": "PLACEHOLDER_ADMIN_RPC_URL",
+      "rootChainPollMS": 333,
+      "timeoutS": 3,
+      "dataDirPath": "/root/.canopy",
+      "dbName": "canopy",
+      "inMemory": false,
+      "networkID": 2,
+      "listenAddress": "0.0.0.0:9001",
+      "externalAddress": "PLACEHOLDER_EXTERNAL_ADDRESS",
+      "maxInbound": 21,
+      "maxOutbound": 7,
+      "trutedPeersIDs": null,
+      "dialPeers": [
+        "b88a5928e54cbf0a36e0b98f5bcf02de9a9a1deba6994739f9160181a609f516eb702936a0cbf4c1f2e7e6be5b8272f2@tcp://64.225.17.207",
+        "abda38eb50fbe53db9e9c3b141c6a1ec54ad40a4840e34784c975da4ee175eb4c5dd10b6d759ae8fdf8bc22511bbd97b@tcp://159.65.42.115",
+        "98d45087a99bcbfde91993502e77dde869d4485c3778fe46513958320da560823d56a0108f4cf3513393f4d561bc489b@tcp://159.89.181.58"
+      ],
+      "bannedPeersIDs": null,
+      "bannedIPs": null,
+      "newHeightTimeoutMS": 2000,
+      "electionTimeoutMS": 2000,
+      "electionVoteTimeoutMS": 2000,
+      "proposeTimeoutMS": 4000,
+      "proposeVoteTimeoutMS": 4000,
+      "precommitTimeoutMS": 2000,
+      "precommitVoteTimeoutMS": 2000,
+      "commitTimeoutMS": 2000,
+      "roundInterruptTimeoutMS": 2000,
+      "maxTotalBytes": 10000000,
+      "maxTransactionCount": 5000,
+      "individualMaxTxSize": 4000,
+      "dropPercentage": 35
+    }
+  setup-config.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Get the pod ordinal (0, 1, 2, etc.) from hostname
+    POD_ORDINAL=$(echo $HOSTNAME | rev | cut -d'-' -f1 | rev)
+    NODE_NUM=$((POD_ORDINAL + 1))
+    
+    # Get the full hostname for dynamic configuration
+    FULL_HOSTNAME=$HOSTNAME
+    
+    echo "Setting up config for node $NODE_NUM (pod ordinal: $POD_ORDINAL)"
+    echo "Full hostname: $FULL_HOSTNAME"
+    
+    # Create the canopy directory if it doesn't exist
+    mkdir -p /root/.canopy
+    
+    # Copy the template and customize it for this node
+    cp /configs/config-template.json /root/.canopy/config.json
+    
+    # Dynamic values based on hostname - all nodes use their own service names
+    NODE_SERVICE_NAME="node${NODE_NUM}"
+    NODE_HOSTNAME="${NODE_SERVICE_NAME}.canopy.svc.cluster.local"
+    RPC_URL="http://${NODE_SERVICE_NAME}.canopy.svc.cluster.local:50002"
+    ADMIN_RPC_URL="http://${NODE_SERVICE_NAME}.canopy.svc.cluster.local:50003"
+    EXTERNAL_ADDRESS="tcp://${NODE_SERVICE_NAME}.test.nodefleet.net"
+    
+    echo "Configuring node $NODE_NUM with dynamic values based on hostname"
+    
+    # Verify variables are set correctly
+    echo "Final variable assignment check:"
+    echo "  RPC_URL is set to: '$RPC_URL'"
+    echo "  ADMIN_RPC_URL is set to: '$ADMIN_RPC_URL'"
+    
+    echo "Configuration values:"
+    echo "  Node Number: $NODE_NUM"
+    echo "  RPC URL: $RPC_URL"
+    echo "  Admin RPC URL: $ADMIN_RPC_URL"
+    echo "  External Address: $EXTERNAL_ADDRESS"
+    
+    # Debug: Show values before replacement
+    echo "Before replacement:"
+    echo "  RPC_URL variable: '$RPC_URL'"
+    echo "  ADMIN_RPC_URL variable: '$ADMIN_RPC_URL'"
+    echo "  EXTERNAL_ADDRESS variable: '$EXTERNAL_ADDRESS'"
+    
+    # Show placeholders in the original file
+    echo "Placeholders in config file:"
+    grep -E "PLACEHOLDER" /root/.canopy/config.json || echo "No placeholders found"
+    
+    # Use a more robust replacement method with perl if available, otherwise sed
+    if command -v perl > /dev/null; then
+        echo "Using perl for replacement"
+        perl -i -pe "s/PLACEHOLDER_EXTERNAL_ADDRESS/\Q$EXTERNAL_ADDRESS\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_RPC_URL/\Q$RPC_URL\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_ADMIN_RPC_URL/\Q$ADMIN_RPC_URL\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_NODE_HOSTNAME/\Q$NODE_HOSTNAME\E/g" /root/.canopy/config.json
+    else
+        echo "Using sed for replacement"
+        # Use different delimiter to avoid conflicts
+        sed -i "s#PLACEHOLDER_EXTERNAL_ADDRESS#$EXTERNAL_ADDRESS#g" /root/.canopy/config.json
+        sed -i "s#PLACEHOLDER_RPC_URL#$RPC_URL#g" /root/.canopy/config.json  
+        sed -i "s#PLACEHOLDER_ADMIN_RPC_URL#$ADMIN_RPC_URL#g" /root/.canopy/config.json
+        sed -i "s#PLACEHOLDER_NODE_HOSTNAME#$NODE_HOSTNAME#g" /root/.canopy/config.json
+    fi
+    
+    # Debug: Show what was actually replaced
+    echo "After replacement check:"
+    grep -E "(rpcURL|adminRPCURL|externalAddress)" /root/.canopy/config.json || echo "Could not find replaced values"
+    
+    # Additional configuration using jq if available, otherwise use sed
+    if command -v jq > /dev/null; then
+        echo "Using jq for JSON manipulation"
+        
+        # Update networkID to be unique per node
+        jq ".networkID = $NODE_NUM" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        
+        # Update chainId to be consistent
+        jq ".chainId = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        
+    else
+        echo "Using sed for configuration (jq not available)"
+        
+        # Update networkID using sed
+        sed -i "s|\"networkID\": [0-9]*|\"networkID\": $NODE_NUM|g" /root/.canopy/config.json
+    fi
+    
+    echo "Config setup complete for node $NODE_NUM"
+    echo "Configuration file created at /root/.canopy/config.json"
+    
+    # Debug: Show key configuration values
+    echo "Key configuration values:"
+    echo "  rpcURL: $(grep -o '"rpcURL": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  adminRPCURL: $(grep -o '"adminRPCURL": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  externalAddress: $(grep -o '"externalAddress": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  networkID: $(grep -o '"networkID": [0-9]*' /root/.canopy/config.json || echo 'Not found')" 

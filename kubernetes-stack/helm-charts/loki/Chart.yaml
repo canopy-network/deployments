@@ -1,0 +1,16 @@
+apiVersion: v2
+name: loki
+description: A Helm chart for Loki log aggregation
+type: application
+version: 0.1.0
+appVersion: "3.4.4"
+keywords:
+  - logging
+  - logs
+  - loki
+home: https://grafana.com/oss/loki/
+sources:
+  - https://github.com/grafana/loki
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net 

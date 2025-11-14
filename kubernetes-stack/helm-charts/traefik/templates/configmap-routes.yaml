@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "traefik.fullname" . }}-routes
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "traefik.labels" . | nindent 4 }}
+data:
+  routes.yaml: |
+    http:
+      routers:
+        # Monitoring services
+        grafana:
+          rule: "Host(`monitoring.{{ .Values.domain }}`)"
+          service: "grafana"
+          entryPoints:
+            - web
+          {{- if .Values.middlewares.httpsRedirect.enabled }}
+          middlewares:
+            - https-redirect@file
+          {{- end }}
+        
+        {{- if .Values.middlewares.httpsRedirect.enabled }}
+        grafana-secure:
+          rule: "Host(`monitoring.{{ .Values.domain }}`)"
+          service: "grafana"
+          entryPoints:
+            - websecure
+          tls:
+            certResolver: https-resolver
+        {{- end }}
+        
+        traefik-dashboard:
+          rule: "Host(`traefik.{{ .Values.domain }}`)"
+          service: "api@internal"
+          entryPoints:
+            - web
+          {{- if .Values.middlewares.httpsRedirect.enabled }}
+          middlewares:
+            - https-redirect@file
+          {{- end }}
+        
+        {{- if .Values.middlewares.httpsRedirect.enabled }}
+        traefik-dashboard-secure:
+          rule: "Host(`traefik.{{ .Values.domain }}`)"
+          service: "api@internal"
+          entryPoints:
+            - websecure
+          tls:
+            certResolver: https-resolver
+        {{- end }}
+        
+        {{- range $i := until (.Values.canopy.nodeCount | int) }}
+        {{- $nodeNum := add $i 1 }}
+        # Node {{ $nodeNum }} - Wallet
+        node{{ $nodeNum }}-wallet:
+          rule: "Host(`wallet.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-wallet"
+          entryPoints:
+            - web
+          {{- if $.Values.middlewares.httpsRedirect.enabled }}
+          middlewares:
+            - https-redirect@file
+          {{- end }}
+        
+        {{- if $.Values.middlewares.httpsRedirect.enabled }}
+        node{{ $nodeNum }}-wallet-secure:
+          rule: "Host(`wallet.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-wallet"
+          entryPoints:
+            - websecure
+          tls:
+            certResolver: https-resolver
+        {{- end }}
+        
+        # Node {{ $nodeNum }} - Explorer
+        node{{ $nodeNum }}-explorer:
+          rule: "Host(`explorer.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-explorer"
+          entryPoints:
+            - web
+          {{- if $.Values.middlewares.httpsRedirect.enabled }}
+          middlewares:
+            - https-redirect@file
+          {{- end }}
+        
+        {{- if $.Values.middlewares.httpsRedirect.enabled }}
+        node{{ $nodeNum }}-explorer-secure:
+          rule: "Host(`explorer.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-explorer"
+          entryPoints:
+            - websecure
+          tls:
+            certResolver: https-resolver
+        {{- end }}
+        
+        # Node {{ $nodeNum }} - RPC
+        node{{ $nodeNum }}-rpc:
+          rule: "Host(`rpc.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-rpc"
+          entryPoints:
+            - web
+          {{- if $.Values.middlewares.httpsRedirect.enabled }}
+          middlewares:
+            - https-redirect@file
+          {{- end }}
+        
+        {{- if $.Values.middlewares.httpsRedirect.enabled }}
+        node{{ $nodeNum }}-rpc-secure:
+          rule: "Host(`rpc.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-rpc"
+          entryPoints:
+            - websecure
+          tls:
+            certResolver: https-resolver
+        {{- end }}
+        
+        # Node {{ $nodeNum }} - Admin RPC
+        node{{ $nodeNum }}-adminrpc:
+          rule: "Host(`adminrpc.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-adminrpc"
+          entryPoints:
+            - web
+          {{- if $.Values.middlewares.httpsRedirect.enabled }}
+          middlewares:
+            - https-redirect@file
+          {{- end }}
+        
+        {{- if $.Values.middlewares.httpsRedirect.enabled }}
+        node{{ $nodeNum }}-adminrpc-secure:
+          rule: "Host(`adminrpc.node{{ $nodeNum }}.{{ $.Values.domain }}`)"
+          service: "node{{ $nodeNum }}-adminrpc"
+          entryPoints:
+            - websecure
+          tls:
+            certResolver: https-resolver
+        {{- end }}
+        
+        {{- end }}
+      
+      services:
+        # Monitoring services
+        grafana:
+          loadBalancer:
+            servers:
+              - url: "http://grafana.monitoring.svc.cluster.local:3000"
+        
+        {{- range $i := until (.Values.canopy.nodeCount | int) }}
+        {{- $nodeNum := add $i 1 }}
+        # Node {{ $nodeNum }} services
+        node{{ $nodeNum }}-wallet:
+          loadBalancer:
+            servers:
+              - url: "http://node{{ $nodeNum }}.canopy.svc.cluster.local:50000"
+        
+        node{{ $nodeNum }}-explorer:
+          loadBalancer:
+            servers:
+              - url: "http://node{{ $nodeNum }}.canopy.svc.cluster.local:50001"
+        
+        node{{ $nodeNum }}-rpc:
+          loadBalancer:
+            servers:
+              - url: "http://node{{ $nodeNum }}.canopy.svc.cluster.local:50002"
+        
+        node{{ $nodeNum }}-adminrpc:
+          loadBalancer:
+            servers:
+              - url: "http://node{{ $nodeNum }}.canopy.svc.cluster.local:50003"
+        
+        {{- end }} 
