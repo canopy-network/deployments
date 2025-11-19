@@ -73,8 +73,7 @@ spec:
       containers:
       - name: canopy
         image: canopynetwork/canopy:latest
-        imagePullPolicy: Always
-        command: ["/app/bin"]
+        imagePullPolicy: IfNotPresent
         args: ["start"]
         ports:
         - containerPort: 50000  # Wallet
@@ -97,7 +96,9 @@ spec:
         - name: BUILD_PATH
           value: "cmd/cli"
         - name: BIN_PATH
-          value: "/usr/local/bin"
+          value: "/bin/cli"
+        - name: REPO_OWNER 
+          value: "canopy-network"
         - name: BRANCH
           value: "latest"
         volumeMounts:

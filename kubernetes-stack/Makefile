@@ -37,6 +37,8 @@ help:
 	@echo "Troubleshooting:"
 	@echo "  make fix-storage - Fix storage class issues for local clusters"
 	@echo "  make fix-pvc - Fix stuck PVCs (removes finalizers, updates StatefulSets)"
+	@echo "  make fix-docker-pull - Fix Docker pull timeout issues on cluster"
+	@echo "  make start-cluster - Start Kubernetes cluster (minikube)"
 
 # Check if kubectl is available
 check-kubectl:
@@ -269,4 +271,22 @@ fix-pvc: check-kubectl check-cluster
 	@echo "🔧 Fixing stuck PVCs..."
 	@./scripts/fix-pvc-stuck.sh
 	@echo "✅ PVC fix completed!"
+
+# Fix Docker pull timeout issues on cluster
+fix-docker-pull:
+	@echo "🔧 Fixing Docker pull timeout issues..."
+	@if command -v minikube &> /dev/null && minikube status &> /dev/null; then \
+		echo "Detected minikube cluster, running minikube fix..."; \
+		./scripts/fix-docker-pull-timeout.sh; \
+	else \
+		echo "Detected remote cluster, running cluster fix..."; \
+		./scripts/fix-cluster-docker-pull.sh; \
+	fi
+	@echo "✅ Docker pull fix completed!"
+
+# Start Kubernetes cluster (minikube)
+start-cluster:
+	@echo "🚀 Starting Kubernetes cluster..."
+	@./scripts/start-k8s-cluster.sh
+	@echo "✅ Cluster start completed!"
 

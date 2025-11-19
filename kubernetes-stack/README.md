@@ -33,6 +33,30 @@ The stack is organized into two namespaces:
 5. **Helm**: 3.0+ (for Helm chart deployment)
 6. **Docker Hub Access**: For pulling the `nodefleet/canopy` image
 
+## Starting the Cluster
+
+If your Kubernetes cluster is not running (e.g., minikube stopped), start it first:
+
+**For Remote Cluster (173.201.36.84):**
+```bash
+cd scripts
+./start-k8s-cluster.sh [CLUSTER_IP] [SSH_USER] [SSH_KEY]
+
+# Or use defaults
+./start-k8s-cluster.sh
+```
+
+**Using Makefile:**
+```bash
+make start-cluster
+```
+
+**Verify cluster is running:**
+```bash
+ssh ubuntu@173.201.36.84 'minikube status'
+ssh ubuntu@173.201.36.84 'kubectl get nodes'
+```
+
 ## Docker Authentication
 
 The Canopy nodes use the `nodefleet/canopy` Docker image, which may be a private repository. You need to set up Docker authentication before deployment.
@@ -353,6 +377,48 @@ Grafana comes with pre-configured dashboards for:
 ## Troubleshooting
 
 ### Docker Image Pull Issues
+
+#### Docker Pull Timeout Errors
+If you encounter timeout errors like:
+```
+Error response from daemon: Get "https://registry-1.docker.io/v2/": net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+```
+
+**For Remote K8s Cluster (e.g., 173.201.36.84):**
+```bash
+# Run the automated fix script
+cd scripts
+./fix-cluster-docker-pull.sh [CLUSTER_IP] [SSH_USER] [SSH_KEY]
+
+# Or manually configure Docker daemon
+ssh ubuntu@173.201.36.84
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json > /dev/null <<'EOF'
+{
+  "dns": ["8.8.8.8", "8.8.4.4", "1.1.1.1"],
+  "max-concurrent-downloads": 10
+}
+EOF
+sudo systemctl restart docker
+docker pull nodefleet/canopy:latest
+```
+
+**For Minikube:**
+```bash
+# Run the diagnostic script
+cd scripts
+./fix-docker-pull-timeout.sh
+
+# Or use minikube image cache
+minikube cache add nodefleet/canopy:latest
+
+# Or load image from host
+docker pull nodefleet/canopy:latest
+docker save nodefleet/canopy:latest -o canopy-image.tar
+minikube image load canopy-image.tar
+```
+
+#### General Docker Image Pull Issues
 If you encounter image pull errors:
 ```bash
 # Check if Docker secret exists
@@ -360,10 +426,14 @@ kubectl get secret docker-registry-secret -n canopy
 kubectl get secret docker-registry-secret -n monitoring
 
 # Recreate Docker secret if needed
+cd scripts
 ./create-docker-secret.sh
 
 # Check pod events for image pull errors
 kubectl describe pod canopy-node-0 -n canopy
+
+# Verify Docker login on cluster node
+ssh ubuntu@173.201.36.84 'cat ~/docker_login.txt | docker login --username nodefleet --password-stdin'
 ```
 
 ### Helm Installation Conflicts
