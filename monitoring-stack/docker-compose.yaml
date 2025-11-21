@@ -71,7 +71,7 @@ services:
   traefik:
     cpus: 2
     mem_limit: 2G
-    image: traefik:v3.5.0
+    image: traefik:v3.6.2
     container_name: traefik
     restart: always
     env_file: 
