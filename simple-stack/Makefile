@@ -6,6 +6,8 @@ endif
 
 build:
 	docker compose build
+build-no-cache:
+	docker compose build --no-cache
 pull:
 	docker pull canopynetwork/canopy
 up:
