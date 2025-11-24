@@ -38,6 +38,7 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+        - strip-wallet-prefix
       tls:
         certResolver: https-resolver
 
@@ -119,6 +120,7 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+        - strip-wallet-prefix
       tls:
         certResolver: https-resolver
 
