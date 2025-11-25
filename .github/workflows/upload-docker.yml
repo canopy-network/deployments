@@ -27,11 +27,12 @@ jobs:
       - name: Build and push Docker image
         run: |
           TAG=${{ github.event.client_payload.tag }}
+          DOCKER_TAG=${TAG//+/-}
           docker build \
-            -t canopynetwork/canopy:${TAG} \
+            -t canopynetwork/canopy:${DOCKER_TAG} \
             -t canopynetwork/canopy:latest \
             --build-arg BRANCH=${TAG} \
             --build-arg BUILD_PATH=cmd/cli \
             ./docker_image/
-          docker push canopynetwork/canopy:${TAG}
+          docker push canopynetwork/canopy:${DOCKER_TAG}
           docker push canopynetwork/canopy:latest
