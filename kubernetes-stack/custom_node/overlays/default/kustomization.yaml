@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: custom-node
+
+# Base configuration
+resources:
+  - ../../base
+
+# Patches for customization
+patchesStrategicMerge:
+  - snapshot-url-patch.yaml
+  - genesis-env-patch.yaml
+  - seed-genesis-env-patch.yaml
+
+# ConfigMap generators to override base values (optional - customize files in base/files/ or override here)
+# Uncomment and customize if you want to override base values in this overlay
+# configMapGenerator:
+#   # Override genesis.json - customize this file
+#   - name: custom-node-genesis
+#     namespace: custom-node
+#     behavior: replace
+#     files:
+#       - files/genesis.json
+#     options:
+#       labels:
+#         app: custom-node
+#         component: genesis
+#       disableNameSuffixHash: true
+
+# Common labels
+labels:
+  - pairs:
+      app: custom-node
+      managed-by: kustomize
+      environment: default
+

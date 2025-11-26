@@ -1,0 +1,53 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: custom-node
+
+resources:
+  - namespace.yaml
+  - nodes.yaml
+  - seed-node.yaml
+  - configmaps.yaml
+  - seed-configmaps.yaml
+
+# ConfigMap generators for customizable resources
+configMapGenerator:
+  # Genesis file - can be customized via files/genesis.json
+  - name: custom-node-genesis
+    namespace: custom-node
+    files:
+      - files/genesis.json
+    options:
+      labels:
+        app: custom-node
+        component: genesis
+      disableNameSuffixHash: true
+  
+  # Validator keys - can be customized via files/validator-keys/
+  - name: custom-node-validator-keys
+    namespace: custom-node
+    files:
+      - node1_validator_key.json=files/validator-keys/node1/validator_key.json
+    options:
+      labels:
+        app: custom-node
+        component: validator-keys
+      disableNameSuffixHash: true
+  
+  # Keystores - can be customized via files/keystores/
+  - name: custom-node-keystores
+    namespace: custom-node
+    files:
+      - node1_keystore.json=files/keystores/node1/keystore.json
+    options:
+      labels:
+        app: custom-node
+        component: keystores
+      disableNameSuffixHash: true
+
+# Common labels
+labels:
+  - pairs:
+      app: custom-node
+      managed-by: kustomize
+

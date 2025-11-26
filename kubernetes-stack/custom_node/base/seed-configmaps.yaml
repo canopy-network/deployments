@@ -1,0 +1,174 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-node-seed-config-template
+  namespace: custom-node
+data:
+  config-template.json: |
+    {
+      "logLevel": "debug",
+      "chainId": 1,
+      "sleepUntil": 0,
+      "rootChain": [
+        {
+          "chainId": 1,
+          "url": "http://PLACEHOLDER_NODE_HOSTNAME:50002"
+        }
+      ],
+      "runVDF": true,
+      "headless": false,
+      "walletPort": "50000",
+      "explorerPort": "50001",
+      "rpcPort": "50002",
+      "adminPort": "50003",
+      "rpcURL": "PLACEHOLDER_RPC_URL",
+      "adminRPCURL": "PLACEHOLDER_ADMIN_RPC_URL",
+      "rootChainPollMS": 333,
+      "timeoutS": 3,
+      "dataDirPath": "/root/.canopy",
+      "dbName": "canopy",
+      "inMemory": false,
+      "networkID": 1,
+      "listenAddress": "0.0.0.0:9001",
+      "externalAddress": "PLACEHOLDER_EXTERNAL_ADDRESS",
+      "maxInbound": 210,
+      "maxOutbound": 70,
+      "trustedPeerIDs": null,
+      "dialPeers": [
+        "90703d453dfa70af3c85f3605e6cc8222d01d68d439ee5a9ade10be631572b330e1793206c8d417d9693be1d5af417fe@tcp://cnpy.network",
+        "b338f09135994130bee5da939513241b5d01ba5e73c409ed5ecea597b86a8b9c05fd27fb5e47a7296350fbae6262a484@tcp://cnpynetwork.com",
+        "9353441f5319ca7b9ee2f8bd764a8c75e3b6b7b13a18b0c4e5252bc0b1232861318b3063255238edc1fb96f08fa2157a@tcp://canopy.seed1.node1.eu.nodefleet.net",
+        "a3d591f2e602fd18df7c94abf02f6d342939570b169886bb355e6879cd7b9dda8c5d825f7895336d4e29750e65fc65df@tcp://canopy.seed1.node1.us.nodefleet.net"
+      ],
+      "bannedPeerIDs": null,
+      "bannedIPs": null,
+      "minimumPeersToStart": 0,
+      "newHeightTimeoutMS": 4500,
+      "electionTimeoutMS": 1500,
+      "electionVoteTimeoutMS": 1500,
+      "proposeTimeoutMS": 2500,
+      "proposeVoteTimeoutMS": 4000,
+      "precommitTimeoutMS": 2000,
+      "precommitVoteTimeoutMS": 2000,
+      "commitTimeoutMS": 2000,
+      "roundInterruptTimeoutMS": 2000,
+      "maxTotalBytes": 1000000,
+      "maxTransactionCount": 5000,
+      "individualMaxTxSize": 4000,
+      "dropPercentage": 35,
+      "metricsEnabled": true,
+      "prometheusAddress": "0.0.0.0:9090"
+    }
+  setup-config.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Get the pod ordinal (0, 1, 2, etc.) from hostname
+    POD_ORDINAL=$(echo $HOSTNAME | rev | cut -d'-' -f1 | rev)
+    NODE_NUM=$((POD_ORDINAL + 1))
+    
+    # Get the full hostname for dynamic configuration
+    FULL_HOSTNAME=$HOSTNAME
+    
+    echo "Setting up config for seed node $NODE_NUM (pod ordinal: $POD_ORDINAL)"
+    echo "Full hostname: $FULL_HOSTNAME"
+    
+    # Create the canopy directory if it doesn't exist
+    mkdir -p /root/.canopy
+    
+    # Copy the template and customize it for this node
+    cp /configs/config-template.json /root/.canopy/config.json
+    
+    # Copy validator key and keystore if they exist
+    if [ -f "/validator-keys/node${NODE_NUM}_validator_key.json" ]; then
+        echo "Copying validator key for node $NODE_NUM"
+        cp /validator-keys/node${NODE_NUM}_validator_key.json /root/.canopy/validator_key.json
+    elif [ -f "/validator-keys/node1_validator_key.json" ]; then
+        echo "Copying default validator key (node1) for node $NODE_NUM"
+        cp /validator-keys/node1_validator_key.json /root/.canopy/validator_key.json
+    fi
+    
+    if [ -f "/keystores/node${NODE_NUM}_keystore.json" ]; then
+        echo "Copying keystore for node $NODE_NUM"
+        cp /keystores/node${NODE_NUM}_keystore.json /root/.canopy/keystore.json
+    elif [ -f "/keystores/node1_keystore.json" ]; then
+        echo "Copying default keystore (node1) for node $NODE_NUM"
+        cp /keystores/node1_keystore.json /root/.canopy/keystore.json
+    fi
+    
+    # Dynamic values based on hostname - seed node uses seed service name
+    NODE_SERVICE_NAME="custom-node-seed-${NODE_NUM}"
+    NODE_HOSTNAME="${NODE_SERVICE_NAME}.custom-node.svc.cluster.local"
+    RPC_URL="http://${NODE_SERVICE_NAME}.custom-node.svc.cluster.local:50002"
+    ADMIN_RPC_URL="http://${NODE_SERVICE_NAME}.custom-node.svc.cluster.local:50003"
+    EXTERNAL_ADDRESS="tcp://PLACEHOLDER_EXTERNAL_IP:9001"
+    
+    echo "Configuring seed node $NODE_NUM with dynamic values based on hostname"
+    echo "Note: Seed node has 10x maxInbound (210) and maxOutbound (70) for supporting new nodes"
+    
+    # Verify variables are set correctly
+    echo "Final variable assignment check:"
+    echo "  RPC_URL is set to: '$RPC_URL'"
+    echo "  ADMIN_RPC_URL is set to: '$ADMIN_RPC_URL'"
+    
+    echo "Configuration values:"
+    echo "  Node Number: $NODE_NUM"
+    echo "  RPC URL: $RPC_URL"
+    echo "  Admin RPC URL: $ADMIN_RPC_URL"
+    echo "  External Address: $EXTERNAL_ADDRESS"
+    
+    # Use a more robust replacement method with perl if available, otherwise sed
+    if command -v perl > /dev/null; then
+        echo "Using perl for replacement"
+        perl -i -pe "s/PLACEHOLDER_EXTERNAL_ADDRESS/\Q$EXTERNAL_ADDRESS\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_RPC_URL/\Q$RPC_URL\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_ADMIN_RPC_URL/\Q$ADMIN_RPC_URL\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_NODE_HOSTNAME/\Q$NODE_HOSTNAME\E/g" /root/.canopy/config.json
+    else
+        echo "Using sed for replacement"
+        # Use different delimiter to avoid conflicts
+        sed -i "s#PLACEHOLDER_EXTERNAL_ADDRESS#$EXTERNAL_ADDRESS#g" /root/.canopy/config.json
+        sed -i "s#PLACEHOLDER_RPC_URL#$RPC_URL#g" /root/.canopy/config.json  
+        sed -i "s#PLACEHOLDER_ADMIN_RPC_URL#$ADMIN_RPC_URL#g" /root/.canopy/config.json
+        sed -i "s#PLACEHOLDER_NODE_HOSTNAME#$NODE_HOSTNAME#g" /root/.canopy/config.json
+    fi
+    
+    # Additional configuration using jq if available, otherwise use sed
+    if command -v jq > /dev/null; then
+        echo "Using jq for JSON manipulation"
+        
+        # Update networkID for mainnet full node (always 1 for mainnet)
+        jq ".networkID = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        
+        # Update chainId to be consistent (mainnet chainId is 1)
+        jq ".chainId = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        
+        # Verify maxInbound and maxOutbound are set correctly (10x values for seed node)
+        MAX_INBOUND=$(jq -r '.maxInbound' /root/.canopy/config.json)
+        MAX_OUTBOUND=$(jq -r '.maxOutbound' /root/.canopy/config.json)
+        echo "Seed node peer limits: maxInbound=$MAX_INBOUND, maxOutbound=$MAX_OUTBOUND"
+        
+    else
+        echo "Using sed for configuration (jq not available)"
+        
+        # Update networkID for mainnet full node (always 1 for mainnet)
+        sed -i "s|\"networkID\": [0-9]*|\"networkID\": 1|g" /root/.canopy/config.json
+        
+        # Verify maxInbound and maxOutbound
+        MAX_INBOUND=$(grep -o '"maxInbound": [0-9]*' /root/.canopy/config.json | grep -o '[0-9]*')
+        MAX_OUTBOUND=$(grep -o '"maxOutbound": [0-9]*' /root/.canopy/config.json | grep -o '[0-9]*')
+        echo "Seed node peer limits: maxInbound=$MAX_INBOUND, maxOutbound=$MAX_OUTBOUND"
+    fi
+    
+    echo "Config setup complete for seed node $NODE_NUM"
+    echo "Configuration file created at /root/.canopy/config.json"
+    
+    # Debug: Show key configuration values
+    echo "Key configuration values:"
+    echo "  rpcURL: $(grep -o '"rpcURL": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  adminRPCURL: $(grep -o '"adminRPCURL": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  externalAddress: $(grep -o '"externalAddress": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  networkID: $(grep -o '"networkID": [0-9]*' /root/.canopy/config.json || echo 'Not found')"
+    echo "  maxInbound: $(grep -o '"maxInbound": [0-9]*' /root/.canopy/config.json || echo 'Not found')"
+    echo "  maxOutbound: $(grep -o '"maxOutbound": [0-9]*' /root/.canopy/config.json || echo 'Not found')"
+

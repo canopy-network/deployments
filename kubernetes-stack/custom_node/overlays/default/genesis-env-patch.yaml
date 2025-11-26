@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: custom-node
+  namespace: custom-node
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: setup-genesis
+        env:
+        # Set GENESIS_FILE environment variable with your genesis JSON content
+        # Example: Use base64 encoded JSON or direct JSON string
+        # For base64: echo -n '{"genesis": "content"}' | base64
+        - name: GENESIS_FILE
+          value: "https://github.com/canopy-network/deployments/blob/master/canopy_data/node1/genesis.json"  # Default to mainnet genesis from GitHub
+          # Can be overridden with a different GitHub URL or JSON content
+          # Example: value: '{"time": "2024-12-14", "accounts": [], ...}'
+          # Or use valueFrom to reference a Secret:
+          # valueFrom:
+          #   secretKeyRef:
+          #     name: genesis-secret
+          #     key: genesis.json
+

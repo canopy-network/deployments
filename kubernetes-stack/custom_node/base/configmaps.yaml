@@ -1,0 +1,245 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-node-snapshot-config
+  namespace: custom-node
+data:
+  download-snapshot.sh: |
+    #!/bin/sh
+    set -e
+    
+    SNAPSHOT_URL="${SNAPSHOT_URL:-http://canopy-mainnet-latest-chain-id1.us.nodefleet.net}"
+    CANOPY_DATA_DIR="/root/.canopy/canopy"
+    SNAPSHOT_FILE="/tmp/snapshot.tar.gz"
+    
+    echo "🔍 Checking for existing canopy data..."
+    
+    # Check if canopy data directory exists and has content
+    if [ -d "$CANOPY_DATA_DIR" ] && [ "$(ls -A $CANOPY_DATA_DIR 2>/dev/null)" ]; then
+        echo "✅ Found existing canopy data in $CANOPY_DATA_DIR"
+        echo "📊 Data directory contents:"
+        ls -lh "$CANOPY_DATA_DIR" | head -10
+        echo "⏭️  Skipping snapshot download - using existing data"
+        exit 0
+    fi
+    
+    echo "📥 No existing data found. Downloading snapshot from $SNAPSHOT_URL"
+    
+    # Create canopy directory if it doesn't exist
+    mkdir -p "$CANOPY_DATA_DIR"
+    
+    # Download snapshot
+    echo "⬇️  Downloading snapshot..."
+    if command -v wget > /dev/null; then
+        wget -O "$SNAPSHOT_FILE" "$SNAPSHOT_URL" || {
+            echo "❌ Failed to download snapshot with wget"
+            exit 1
+        }
+    elif command -v curl > /dev/null; then
+        curl -L -o "$SNAPSHOT_FILE" "$SNAPSHOT_URL" || {
+            echo "❌ Failed to download snapshot with curl"
+            exit 1
+        }
+    else
+        echo "❌ Neither wget nor curl is available"
+        exit 1
+    fi
+    
+    # Verify snapshot file was downloaded
+    if [ ! -f "$SNAPSHOT_FILE" ]; then
+        echo "❌ Snapshot file not found after download"
+        exit 1
+    fi
+    
+    echo "✅ Snapshot downloaded successfully ($(du -h $SNAPSHOT_FILE | cut -f1))"
+    
+    # Extract snapshot
+    echo "📦 Extracting snapshot to $CANOPY_DATA_DIR..."
+    
+    # Clean up any existing partial data
+    rm -rf "$CANOPY_DATA_DIR"/*
+    
+    # Extract with progress if possible
+    if command -v pv > /dev/null; then
+        pv "$SNAPSHOT_FILE" | tar -xzf - -C "$CANOPY_DATA_DIR"
+    else
+        tar -xzf "$SNAPSHOT_FILE" -C "$CANOPY_DATA_DIR"
+    fi
+    
+    # Verify extraction
+    if [ ! "$(ls -A $CANOPY_DATA_DIR 2>/dev/null)" ]; then
+        echo "❌ Snapshot extraction failed - directory is empty"
+        exit 1
+    fi
+    
+    echo "✅ Snapshot extracted successfully"
+    echo "📊 Extracted data:"
+    ls -lh "$CANOPY_DATA_DIR" | head -10
+    
+    # Clean up snapshot file
+    echo "🧹 Cleaning up snapshot file..."
+    rm -f "$SNAPSHOT_FILE"
+    
+    echo "✅ Snapshot setup complete!"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-node-config-template
+  namespace: custom-node
+data:
+  config-template.json: |
+    {
+      "logLevel": "debug",
+      "chainId": 1,
+      "sleepUntil": 0,
+      "rootChain": [
+        {
+          "chainId": 1,
+          "url": "http://PLACEHOLDER_NODE_HOSTNAME:50002"
+        }
+      ],
+      "runVDF": true,
+      "headless": false,
+      "walletPort": "50000",
+      "explorerPort": "50001",
+      "rpcPort": "50002",
+      "adminPort": "50003",
+      "rpcURL": "PLACEHOLDER_RPC_URL",
+      "adminRPCURL": "PLACEHOLDER_ADMIN_RPC_URL",
+      "rootChainPollMS": 333,
+      "timeoutS": 3,
+      "dataDirPath": "/root/.canopy",
+      "dbName": "canopy",
+      "inMemory": false,
+      "networkID": 1,
+      "listenAddress": "0.0.0.0:9001",
+      "externalAddress": "PLACEHOLDER_EXTERNAL_ADDRESS",
+      "maxInbound": 21,
+      "maxOutbound": 7,
+      "trustedPeerIDs": null,
+      "dialPeers": [
+        "90703d453dfa70af3c85f3605e6cc8222d01d68d439ee5a9ade10be631572b330e1793206c8d417d9693be1d5af417fe@tcp://cnpy.network",
+        "b338f09135994130bee5da939513241b5d01ba5e73c409ed5ecea597b86a8b9c05fd27fb5e47a7296350fbae6262a484@tcp://cnpynetwork.com",
+        "9353441f5319ca7b9ee2f8bd764a8c75e3b6b7b13a18b0c4e5252bc0b1232861318b3063255238edc1fb96f08fa2157a@tcp://canopy.seed1.node1.eu.nodefleet.net",
+        "a3d591f2e602fd18df7c94abf02f6d342939570b169886bb355e6879cd7b9dda8c5d825f7895336d4e29750e65fc65df@tcp://canopy.seed1.node1.us.nodefleet.net"
+      ],
+      "bannedPeerIDs": null,
+      "bannedIPs": null,
+      "minimumPeersToStart": 0,
+      "newHeightTimeoutMS": 4500,
+      "electionTimeoutMS": 1500,
+      "electionVoteTimeoutMS": 1500,
+      "proposeTimeoutMS": 2500,
+      "proposeVoteTimeoutMS": 4000,
+      "precommitTimeoutMS": 2000,
+      "precommitVoteTimeoutMS": 2000,
+      "commitTimeoutMS": 2000,
+      "roundInterruptTimeoutMS": 2000,
+      "maxTotalBytes": 1000000,
+      "maxTransactionCount": 5000,
+      "individualMaxTxSize": 4000,
+      "dropPercentage": 35,
+      "metricsEnabled": true,
+      "prometheusAddress": "0.0.0.0:9090"
+    }
+  setup-config.sh: |
+    #!/bin/bash
+    set -e
+    
+    # Get the pod ordinal (0, 1, 2, etc.) from hostname
+    POD_ORDINAL=$(echo $HOSTNAME | rev | cut -d'-' -f1 | rev)
+    NODE_NUM=$((POD_ORDINAL + 1))
+    
+    # Get the full hostname for dynamic configuration
+    FULL_HOSTNAME=$HOSTNAME
+    
+    echo "Setting up config for node $NODE_NUM (pod ordinal: $POD_ORDINAL)"
+    echo "Full hostname: $FULL_HOSTNAME"
+    
+    # Create the canopy directory if it doesn't exist
+    mkdir -p /root/.canopy
+    
+    # Copy the template and customize it for this node
+    cp /configs/config-template.json /root/.canopy/config.json
+    
+    # Copy validator key and keystore if they exist
+    if [ -f "/validator-keys/node${NODE_NUM}_validator_key.json" ]; then
+        echo "Copying validator key for node $NODE_NUM"
+        cp /validator-keys/node${NODE_NUM}_validator_key.json /root/.canopy/validator_key.json
+    elif [ -f "/validator-keys/node1_validator_key.json" ]; then
+        echo "Copying default validator key (node1) for node $NODE_NUM"
+        cp /validator-keys/node1_validator_key.json /root/.canopy/validator_key.json
+    fi
+    
+    if [ -f "/keystores/node${NODE_NUM}_keystore.json" ]; then
+        echo "Copying keystore for node $NODE_NUM"
+        cp /keystores/node${NODE_NUM}_keystore.json /root/.canopy/keystore.json
+    elif [ -f "/keystores/node1_keystore.json" ]; then
+        echo "Copying default keystore (node1) for node $NODE_NUM"
+        cp /keystores/node1_keystore.json /root/.canopy/keystore.json
+    fi
+    
+    # Dynamic values based on hostname - all nodes use their own service names
+    NODE_SERVICE_NAME="custom-node-${NODE_NUM}"
+    NODE_HOSTNAME="${NODE_SERVICE_NAME}.custom-node.svc.cluster.local"
+    RPC_URL="http://${NODE_SERVICE_NAME}.custom-node.svc.cluster.local:50002"
+    ADMIN_RPC_URL="http://${NODE_SERVICE_NAME}.custom-node.svc.cluster.local:50003"
+    EXTERNAL_ADDRESS="tcp://173.201.36.85:9001"
+    
+    echo "Configuring node $NODE_NUM with dynamic values based on hostname"
+    
+    # Verify variables are set correctly
+    echo "Final variable assignment check:"
+    echo "  RPC_URL is set to: '$RPC_URL'"
+    echo "  ADMIN_RPC_URL is set to: '$ADMIN_RPC_URL'"
+    
+    echo "Configuration values:"
+    echo "  Node Number: $NODE_NUM"
+    echo "  RPC URL: $RPC_URL"
+    echo "  Admin RPC URL: $ADMIN_RPC_URL"
+    echo "  External Address: $EXTERNAL_ADDRESS"
+    
+    # Use a more robust replacement method with perl if available, otherwise sed
+    if command -v perl > /dev/null; then
+        echo "Using perl for replacement"
+        perl -i -pe "s/PLACEHOLDER_EXTERNAL_ADDRESS/\Q$EXTERNAL_ADDRESS\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_RPC_URL/\Q$RPC_URL\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_ADMIN_RPC_URL/\Q$ADMIN_RPC_URL\E/g" /root/.canopy/config.json
+        perl -i -pe "s/PLACEHOLDER_NODE_HOSTNAME/\Q$NODE_HOSTNAME\E/g" /root/.canopy/config.json
+    else
+        echo "Using sed for replacement"
+        # Use different delimiter to avoid conflicts
+        sed -i "s#PLACEHOLDER_EXTERNAL_ADDRESS#$EXTERNAL_ADDRESS#g" /root/.canopy/config.json
+        sed -i "s#PLACEHOLDER_RPC_URL#$RPC_URL#g" /root/.canopy/config.json  
+        sed -i "s#PLACEHOLDER_ADMIN_RPC_URL#$ADMIN_RPC_URL#g" /root/.canopy/config.json
+        sed -i "s#PLACEHOLDER_NODE_HOSTNAME#$NODE_HOSTNAME#g" /root/.canopy/config.json
+    fi
+    
+    # Additional configuration using jq if available, otherwise use sed
+    if command -v jq > /dev/null; then
+        echo "Using jq for JSON manipulation"
+        
+        # Update networkID for mainnet full node (always 1 for mainnet)
+        jq ".networkID = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        
+        # Update chainId to be consistent (mainnet chainId is 1)
+        jq ".chainId = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        
+    else
+        echo "Using sed for configuration (jq not available)"
+        
+        # Update networkID for mainnet full node (always 1 for mainnet)
+        sed -i "s|\"networkID\": [0-9]*|\"networkID\": 1|g" /root/.canopy/config.json
+    fi
+    
+    echo "Config setup complete for node $NODE_NUM"
+    echo "Configuration file created at /root/.canopy/config.json"
+    
+    # Debug: Show key configuration values
+    echo "Key configuration values:"
+    echo "  rpcURL: $(grep -o '"rpcURL": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  adminRPCURL: $(grep -o '"adminRPCURL": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  externalAddress: $(grep -o '"externalAddress": "[^"]*"' /root/.canopy/config.json || echo 'Not found')"
+    echo "  networkID: $(grep -o '"networkID": [0-9]*' /root/.canopy/config.json || echo 'Not found')"
+

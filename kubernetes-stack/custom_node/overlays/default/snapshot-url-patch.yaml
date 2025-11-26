@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: custom-node
+  namespace: custom-node
+spec:
+  template:
+    spec:
+      initContainers:
+      - name: download-snapshot
+        env:
+        - name: SNAPSHOT_URL
+          value: "http://canopy-mainnet-latest-chain-id1.us.nodefleet.net"  # Customize this value
+
+
