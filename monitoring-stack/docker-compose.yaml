@@ -15,15 +15,16 @@ services:
   node1:
     container_name: node1
     hostname: node1
-    image: canopynetwork/canopy
-    build:
-      context: ../docker_image
-      dockerfile: ./Dockerfile
-      network: host
-      args:
-        BUILD_PATH: cmd/cli
-        BIN_PATH: $BIN_PATH
-        BRANCH: latest 
+    image: canopynetwork/canopy:latest
+      # This is just here as an example on how to build from a branch
+      #build:
+      #context: ../docker_image
+        #dockerfile: ./Dockerfile
+        #network: host
+        #args:
+        # BUILD_PATH: cmd/cli
+          # BIN_PATH: $BIN_PATH
+          #BRANCH: latest
     env_file:
       - .env
     ports:
@@ -47,7 +48,17 @@ services:
   node2:
     container_name: node2
     hostname: node2
-    image: canopynetwork/canopy
+    image: canopynetwork/canopy:latest
+      # This is just here as an example on how to build from a branch
+      # build:
+      # context: ../docker_image
+        #dockerfile: ./Dockerfile
+        # network: host
+        #args:
+        #BUILD_PATH: cmd/cli
+          # BIN_PATH: $BIN_PATH
+          #        BRANCH: latest
+
     env_file:
       - .env
     ports:
@@ -90,7 +101,6 @@ services:
   prometheus:
     image: prom/prometheus:v3.5.0
     container_name: prometheus
-    user: root
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./monitoring/prometheus/data:/prometheus/data
@@ -105,7 +115,6 @@ services:
   grafana:
     image: grafana/grafana:12.2.0-16557133545
     container_name: grafana 
-    user: root
     ports:
     -  "3000:3000"
     volumes:
@@ -122,7 +131,7 @@ services:
     container_name: loki
     volumes:
       - ./monitoring/loki/config.yaml:/etc/loki/local-config.yaml
-      - ./monitoring/loki/data:/data/loki
+      - ./monitoring/loki/data:/var/lib/loki
     expose:
       - 3100
     ports:
