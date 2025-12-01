@@ -1,102 +1,191 @@
 http:
   routers:
-    canopy-wallet-local:
-      rule: Host(`wallet.node1.localhost`) 
-      service: canopy-wallet-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-explorer-local:
-      rule: Host(`explorer.node1.localhost`)
-      service: canopy-explorer-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-rpc-local:
-      rule: Host(`rpc.node1.localhost`)
-      service: canopy-rpc-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-admin-rpc-local:
-      rule: Host(`adminrpc.node1.localhost`)
-      service: canopy-admin-rpc-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-wallet2-local:
-      rule: Host(`wallet.node2.localhost`) 
-      service: canopy-wallet2-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-explorer2-local:
-      rule: Host(`explorer.node2.localhost`)
-      service: canopy-explorer2-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-rpc2-local:
-      rule: Host(`rpc.node2.localhost`)
-      service: canopy-rpc2-local
-      priority: 1
-      entryPoints:
-      - web
-    canopy-admin-rpc2-local:
-      rule: Host(`adminrpc.node2.localhost`)
-      service: canopy-admin-rpc2-local
-      priority: 1
-      entryPoints:
-      - web
     canopy-monitoring-local:
       rule: Host(`monitoring.localhost`)
       service: canopy-monitoring-local
       priority: 1
       entryPoints:
-      - web
+        - web
+
+    # New router for /wallet redirect (higher priority)
+    canopy-node1-wallet-redirect-local:
+      rule: Host(`node1.localhost`) && Path(`/wallet`)
+      service: canopy-wallet-local
+      priority: 2  # Higher priority than the main wallet router
+      entryPoints:
+        - web
+      middlewares:
+        - wallet-redirect
+
+    canopy-node1-wallet-local:
+      rule: Host(`node1.localhost`) && PathPrefix(`/wallet`)
+      service: canopy-wallet-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+        - strip-wallet-prefix
+
+    # New router for /explorer redirect (higher priority)
+    canopy-node1-explorer-redirect-local:
+      rule: Host(`node1.localhost`) && Path(`/explorer`)
+      service: canopy-explorer-local
+      priority: 2  # Higher priority than the main explorer router
+      entryPoints:
+        - web
+      middlewares:
+        - explorer-redirect
+
+    canopy-node1-explorer-local:
+      rule: Host(`node1.localhost`) && PathPrefix(`/explorer`)
+      service: canopy-explorer-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-explorer-prefix
+
+    canopy-node1-rpc-local:
+      rule: Host(`node1.localhost`) && PathPrefix(`/rpc`)
+      service: canopy-rpc-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-rpc-prefix
+
+    canopy-node1-admin-rpc-local:
+      rule: Host(`node1.localhost`) && PathPrefix(`/adminrpc`)
+      service: canopy-admin-rpc-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+        - strip-adminrpc-prefix
+    
+    # New router for node2 /wallet redirect (higher priority)
+    canopy-node2-wallet-redirect-local:
+      rule: Host(`node2.localhost`) && Path(`/wallet`)
+      service: canopy-wallet2-local
+      priority: 2  # Higher priority than the main wallet router
+      entryPoints:
+        - web
+      middlewares:
+        - wallet-redirect
+
+    canopy-node2-wallet-local:
+      rule: Host(`node2.localhost`) && PathPrefix(`/wallet`)
+      service: canopy-wallet2-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-wallet-prefix
+        - basic-auth
+
+    # New router for node2 /explorer redirect (higher priority)
+    canopy-node2-explorer-redirect-local:
+      rule: Host(`node2.localhost`) && Path(`/explorer`)
+      service: canopy-explorer2-local
+      priority: 2  # Higher priority than the main explorer router
+      entryPoints:
+        - web
+      middlewares:
+        - explorer-redirect
+
+    canopy-node2-explorer-local:
+      rule: Host(`node2.localhost`) && PathPrefix(`/explorer`)
+      service: canopy-explorer2-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-explorer-prefix
+
+    canopy-node2-rpc-local:
+      rule: Host(`node2.localhost`) && PathPrefix(`/rpc`)
+      service: canopy-rpc2-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-rpc-prefix
+
+    canopy-node2-admin-rpc-local:
+      rule: Host(`node2.localhost`) && PathPrefix(`/adminrpc`)
+      service: canopy-admin-rpc2-local
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+        - strip-adminrpc-prefix
+
   services:
     canopy-wallet-local:
       loadBalancer:
         passHostHeader: false
         servers:
-          - url: http://node1:50000
+          - url: http://node1:50000/
+
+    canopy-wallet-static-local:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node1:50000/_next/
+
     canopy-explorer-local:
       loadBalancer:
         passHostHeader: false
         servers:
           - url: http://node1:50001
-    canopy-rpc-local:
-      loadBalancer:
-        passHostHeader: false 
-        servers:
-          - url: http://node1:50002
-    canopy-admin-rpc-local:
+
+    canopy-explorer-static-local:
       loadBalancer:
         passHostHeader: false
         servers:
-          - url: http://node1:50003
+          - url: http://node1:50001/_next/
+
+    canopy-rpc-local:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://node1:50002/
+
+    canopy-admin-rpc-local:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://node1:50003/
+
     canopy-wallet2-local:
       loadBalancer:
         passHostHeader: false
         servers:
           - url: http://node2:40000
+
     canopy-explorer2-local:
       loadBalancer:
         passHostHeader: false
         servers:
           - url: http://node2:40001
+
     canopy-rpc2-local:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: http://node2:40002
+          - url: http://node2:40002/
+
     canopy-admin-rpc2-local:
       loadBalancer:
-        passHostHeader: false
+        passHostHeader: true
         servers:
-          - url: http://node2:40003
+          - url: http://node2:40003/
+
     canopy-monitoring-local:
       loadBalancer:
-        passHostHeader:  true
+        passHostHeader: true
         servers:
-          - url: http://grafana:3000
+          - url: http://grafana:3000/
