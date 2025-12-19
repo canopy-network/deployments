@@ -1,0 +1,293 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: custom-node-snapshot
+  namespace: custom-node
+spec:
+  serviceName: custom-node-snapshot-headless
+  replicas: 1
+  selector:
+    matchLabels:
+      app: custom-node-snapshot
+  template:
+    metadata:
+      labels:
+        app: custom-node-snapshot
+    spec:
+      imagePullSecrets:
+      - name: docker-registry-secret
+      # Tolerations for control-plane taint
+      tolerations:
+      - key: "node-role.kubernetes.io/control-plane"
+        operator: "Exists"
+        effect: "NoSchedule"
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
+      volumes:
+      - name: canopy-genesis
+        configMap:
+          name: custom-node-genesis
+          optional: true
+      - name: localnet-genesis
+        configMap:
+          name: canopy-localnet-genesis
+          optional: true
+      - name: canopy-config-template
+        configMap:
+          name: custom-node-snapshot-config-template
+      - name: validator-keys
+        configMap:
+          name: custom-node-snapshot-validator-keys
+          optional: true
+      - name: keystores
+        configMap:
+          name: custom-node-snapshot-keystores
+          optional: true
+      initContainers:
+      - name: setup-genesis
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          set -e
+          echo "Setting up genesis file for snapshot node..."
+          
+          # Install wget/curl for downloading from GitHub
+          apk add --no-cache wget curl > /dev/null 2>&1 || true
+          
+          # Function to download from GitHub URL
+          download_genesis() {
+              local url="$1"
+              echo "Downloading genesis file from: $url"
+              
+              # Convert GitHub blob URL to raw URL if needed
+              if echo "$url" | grep -q "github.com.*blob"; then
+                  url=$(echo "$url" | sed 's|github.com|raw.githubusercontent.com|' | sed 's|/blob||')
+                  echo "Converted to raw URL: $url"
+              fi
+              
+              # Download using wget or curl
+              if command -v wget > /dev/null; then
+                  if wget -q -O /root/.canopy/genesis.json "$url" 2>&1; then
+                      echo "Downloaded successfully with wget"
+                  else
+                      echo "Failed to download genesis with wget from: $url"
+                      return 1
+                  fi
+              elif command -v curl > /dev/null; then
+                  if curl -sL -o /root/.canopy/genesis.json "$url" 2>&1; then
+                      echo "Downloaded successfully with curl"
+                  else
+                      echo "Failed to download genesis with curl from: $url"
+                      return 1
+                  fi
+              else
+                  echo "Neither wget nor curl is available"
+                  return 1
+              fi
+              
+              # Verify file was downloaded and is not empty
+              if [ ! -s /root/.canopy/genesis.json ]; then
+                  echo "Downloaded file is empty"
+                  return 1
+              fi
+              
+              # Verify JSON validity
+              if ! cat /root/.canopy/genesis.json | grep -q "validators\|params"; then
+                  echo "Downloaded file doesn't appear to be a valid genesis.json"
+                  echo "First 100 chars: $(head -c 100 /root/.canopy/genesis.json)"
+                  return 1
+              fi
+              
+              echo "Genesis file downloaded and verified successfully"
+              return 0
+          }
+          
+          # Priority order:
+          # 1. GENESIS_FILE environment variable (GitHub URL or JSON content)
+          # 2. Custom node genesis ConfigMap (custom-node-genesis)
+          # 3. Localnet genesis ConfigMap (canopy-localnet-genesis)
+          # 4. No genesis file (node syncs from network)
+          
+          if [ -n "$GENESIS_FILE" ]; then
+              echo "GENESIS_FILE env var is set"
+              
+              # Check if it's a URL (GitHub or other)
+              if echo "$GENESIS_FILE" | grep -qE "^https?://"; then
+                  echo "GENESIS_FILE is a URL, downloading..."
+                  if download_genesis "$GENESIS_FILE"; then
+                      echo "Genesis file downloaded from GENESIS_FILE URL"
+                  else
+                      echo "Failed to download genesis from URL, trying fallback..."
+                  fi
+              else
+                  # Assume it's JSON content
+                  echo "GENESIS_FILE appears to be JSON content, writing directly..."
+                  echo "$GENESIS_FILE" > /root/.canopy/genesis.json
+                  echo "Genesis file written from GENESIS_FILE env var"
+              fi
+          fi
+          
+          # If genesis file doesn't exist yet, try fallbacks
+          if [ ! -f /root/.canopy/genesis.json ]; then
+              echo "GENESIS_FILE not set or download failed, trying fallbacks..."
+              
+              # Priority 2: Custom node genesis ConfigMap
+              if [ -f /genesis/genesis.json ]; then
+                  echo "Using genesis.json from custom-node-genesis ConfigMap"
+                  cp /genesis/genesis.json /root/.canopy/genesis.json
+                  echo "Genesis file copied from custom-node ConfigMap"
+              # Priority 3: Localnet genesis ConfigMap
+              elif [ -f /localnet-genesis/genesis.json ]; then
+                  echo "Using localnet genesis.json from ConfigMap (canopy-localnet-genesis)"
+                  cp /localnet-genesis/genesis.json /root/.canopy/genesis.json
+                  echo "Genesis file copied from localnet ConfigMap"
+              else
+                  echo "Warning: No genesis file found"
+                  echo "Node will start without genesis file (may sync from network)"
+              fi
+          fi
+          
+          # Verify genesis file if it exists
+          if [ -f /root/.canopy/genesis.json ]; then
+              echo "Genesis file content preview:"
+              head -5 /root/.canopy/genesis.json || true
+              echo "Genesis file is ready at /root/.canopy/genesis.json"
+          fi
+        env:
+        - name: GENESIS_FILE
+          value: ""  # Set via patch or env var
+        volumeMounts:
+        - name: canopy-data
+          mountPath: /root/.canopy
+        - name: canopy-genesis
+          mountPath: /genesis
+          readOnly: true
+        - name: localnet-genesis
+          mountPath: /localnet-genesis
+          readOnly: true
+      - name: setup-config
+        image: busybox:1.35
+        command: ["/bin/sh", "/configs/setup-config.sh"]
+        volumeMounts:
+        - name: canopy-config-template
+          mountPath: /configs
+        - name: canopy-data
+          mountPath: /root/.canopy/
+        - name: validator-keys
+          mountPath: /validator-keys
+          readOnly: true
+        - name: keystores
+          mountPath: /keystores
+          readOnly: true
+      containers:
+      - name: canopy
+        image: canopynetwork/canopy:latest
+        imagePullPolicy: Always
+        command: ["/app/entrypoint.sh"]
+        args: ["start"]
+        ports:
+        - containerPort: 50000  # Wallet
+          name: wallet
+        - containerPort: 50001  # Explorer
+          name: explorer
+        - containerPort: 50002  # RPC
+          name: rpc
+        - containerPort: 50003  # Admin RPC
+          name: admin-rpc
+        - containerPort: 9001   # TCP P2P
+          name: p2p
+        - containerPort: 9090   # Metrics
+          name: metrics
+        env:
+        - name: EXPLORER_BASE_PATH
+          value: "/"
+        - name: WALLET_BASE_PATH
+          value: "/"
+        - name: BUILD_PATH
+          value: "cmd/cli"
+        - name: BIN_PATH
+          value: "/bin/cli"
+        - name: REPO_OWNER 
+          value: "canopy-network"
+        - name: BRANCH
+          value: "no-sync-issue"
+        volumeMounts:
+        - name: canopy-data
+          mountPath: /root/.canopy
+        resources:
+          limits:
+            memory: "3Gi"
+            cpu: "2"
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+  volumeClaimTemplates:
+  - metadata:
+      name: canopy-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 50Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: custom-node-snapshot-headless
+  namespace: custom-node
+spec:
+  clusterIP: None
+  selector:
+    app: custom-node-snapshot
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: custom-node-snapshot
+  namespace: custom-node
+spec:
+  selector:
+    app: custom-node-snapshot
+  ports:
+  - name: wallet
+    port: 50000
+    targetPort: 50000
+  - name: explorer
+    port: 50001
+    targetPort: 50001
+  - name: rpc
+    port: 50002
+    targetPort: 50002
+  - name: admin-rpc
+    port: 50003
+    targetPort: 50003
+  - name: p2p
+    port: 9001
+    targetPort: 9001
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+

@@ -1,0 +1,190 @@
+# traefik-dynamic.yaml
+http:
+  routers:
+    canopy-monitoring:
+      rule: Host(`monitoring.{{ env "DOMAIN" }}`)
+      service: canopy-monitoring
+      priority: 1
+      entryPoints:
+        - web
+
+
+    # New router for /wallet redirect (higher priority)
+    canopy-node1-wallet-redirect:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && Path(`/wallet`)
+      service: canopy-wallet
+      priority: 2  # Higher priority than the main wallet router
+      entryPoints:
+        - web
+
+    canopy-node1-wallet:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      service: canopy-wallet
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+
+    # New router for /explorer redirect (higher priority)
+    canopy-node1-explorer-redirect:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && Path(`/explorer`)
+      service: canopy-explorer
+      priority: 2  # Higher priority than the main explorer router
+      entryPoints:
+        - web
+      middlewares:
+        - explorer-redirect
+
+    canopy-node1-explorer:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
+      service: canopy-explorer
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-explorer-prefix
+
+    canopy-node1-rpc:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
+      service: canopy-rpc
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - https-redirect
+
+    canopy-node1-admin-rpc:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
+      service: canopy-admin-rpc
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+        - strip-adminrpc-prefix
+    
+    # New router for node2 /wallet redirect (higher priority)
+    canopy-node2-wallet-redirect:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && Path(`/wallet`)
+      service: canopy-wallet2
+      priority: 2  # Higher priority than the main wallet router
+      entryPoints:
+        - web
+      middlewares:
+        - wallet-redirect
+
+    canopy-node2-wallet:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      service: canopy-wallet2
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+        - strip-wallet-prefix
+
+    # New router for node2 /explorer redirect (higher priority)
+    canopy-node2-explorer-redirect:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && Path(`/explorer`)
+      service: canopy-explorer2
+      priority: 2  # Higher priority than the main explorer router
+      entryPoints:
+        - web
+      middlewares:
+        - explorer-redirect
+
+    canopy-node2-explorer:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
+      service: canopy-explorer2
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-explorer-prefix
+
+    canopy-node2-rpc:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
+      service: canopy-rpc2
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - strip-rpc-prefix
+
+    canopy-node2-admin-rpc:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
+      service: canopy-admin-rpc2
+      priority: 1
+      entryPoints:
+        - web
+      middlewares:
+        - basic-auth
+        - strip-adminrpc-prefix
+
+  services:
+    canopy-wallet:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node1:50000/
+
+    canopy-wallet-static:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node1:50000/_next/
+
+    canopy-explorer:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node1:50001
+
+    canopy-explorer-static:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node1:50001/_next/
+
+    canopy-rpc:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://node1:50002/
+
+    canopy-admin-rpc:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://node1:50003/
+
+    canopy-wallet2:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node2:40000
+
+    canopy-explorer2:
+      loadBalancer:
+        passHostHeader: false
+        servers:
+          - url: http://node2:40001
+
+    canopy-rpc2:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://node2:40002/
+
+    canopy-admin-rpc2:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://node2:40003/
+
+    canopy-monitoring:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: http://grafana:3000/

@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "promtail.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "promtail.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "promtail.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "promtail.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "promtail.serviceAccountName" . }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: promtail
+          image: "{{ .Values.promtail.image.repository }}:{{ .Values.promtail.image.tag }}"
+          imagePullPolicy: {{ .Values.promtail.image.pullPolicy }}
+          args:
+            - "-config.file=/etc/promtail/promtail.yaml"
+          env:
+            - name: HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - name: http-metrics
+              containerPort: 3101
+              protocol: TCP
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/promtail
+            {{- range .Values.extraVolumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+              {{- if .readOnly }}
+              readOnly: {{ .readOnly }}
+              {{- end }}
+            {{- end }}
+          resources:
+            {{- toYaml .Values.promtail.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "promtail.fullname" . }}-config
+        {{- range .Values.extraVolumes }}
+        - name: {{ .name }}
+          {{- if .hostPath }}
+          hostPath:
+            path: {{ .hostPath.path }}
+          {{- end }}
+        {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+

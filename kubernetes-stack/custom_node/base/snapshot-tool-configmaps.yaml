@@ -1,0 +1,151 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: snapshot-tool-scripts
+  namespace: custom-node
+data:
+  create-snapshot.sh: |
+    #!/bin/sh
+    set -e
+    
+    echo "Starting snapshot creation for ${BLOCKCHAIN_NAME}..."
+    
+    # Install required tools
+    apk add --no-cache tar pigz curl wget > /dev/null 2>&1 || true
+    
+    # Create timestamp for this snapshot
+    TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+    SNAPSHOT_FILENAME="${SNAPSHOT_NAME}-${TIMESTAMP}.tar.gz"
+    SNAPSHOT_PATH="/snapshots/${SNAPSHOT_FILENAME}"
+    LATEST_LINK="/snapshots/latest.tar.gz"
+    
+    echo "Creating snapshot: ${SNAPSHOT_FILENAME}"
+    
+    # Check if source data exists
+    if [ ! -d "/data" ]; then
+        echo "Error: Source data directory /data does not exist"
+        exit 1
+    fi
+    
+    # Create snapshot using tar with pigz compression
+    cd /data
+    echo "Compressing data from /data..."
+    
+    # Exclude temporary files and locks
+    tar --exclude='*.lock' \
+        --exclude='*.tmp' \
+        --exclude='LOCK' \
+        -cf - . | pigz -p 4 > "${SNAPSHOT_PATH}"
+    
+    # Get snapshot size
+    SNAPSHOT_SIZE=$(du -h "${SNAPSHOT_PATH}" | cut -f1)
+    echo "Snapshot created: ${SNAPSHOT_PATH} (${SNAPSHOT_SIZE})"
+    
+    # Update latest symlink
+    ln -sf "${SNAPSHOT_FILENAME}" "${LATEST_LINK}"
+    echo "Updated latest symlink to: ${SNAPSHOT_FILENAME}"
+    
+    # Create metadata file
+    cat > "/snapshots/metadata.json" << EOF
+    {
+      "blockchain": "${BLOCKCHAIN_NAME}",
+      "chain_id": ${CHAIN_ID},
+      "snapshot_name": "${SNAPSHOT_NAME}",
+      "filename": "${SNAPSHOT_FILENAME}",
+      "timestamp": "${TIMESTAMP}",
+      "size": "${SNAPSHOT_SIZE}",
+      "created_at": "$(date -Iseconds)"
+    }
+    EOF
+    
+    echo "Metadata file created at /snapshots/metadata.json"
+    
+    # Upload to Storj if enabled
+    if [ "${STORJ_ENABLED}" = "true" ] && [ -n "${STORJ_GRANT_KEY}" ]; then
+        echo "Uploading snapshot to Storj..."
+        
+        # Install uplink if not present
+        if ! command -v uplink > /dev/null; then
+            echo "Installing Storj uplink..."
+            wget -qO /tmp/uplink.zip https://github.com/storj/storj/releases/latest/download/uplink_linux_amd64.zip
+            unzip -o /tmp/uplink.zip -d /usr/local/bin/
+            chmod +x /usr/local/bin/uplink
+        fi
+        
+        # Configure uplink with access grant
+        uplink access import --force main "${STORJ_GRANT_KEY}"
+        
+        # Upload snapshot
+        uplink cp "${SNAPSHOT_PATH}" "sj://snapshots/${STORJ_DIRNAME}/${SNAPSHOT_FILENAME}"
+        echo "Snapshot uploaded to Storj: sj://snapshots/${STORJ_DIRNAME}/${SNAPSHOT_FILENAME}"
+        
+        # Upload latest symlink info
+        echo "${SNAPSHOT_FILENAME}" > /tmp/latest.txt
+        uplink cp /tmp/latest.txt "sj://snapshots/${STORJ_DIRNAME}/latest.txt"
+        
+        # Upload metadata
+        uplink cp /snapshots/metadata.json "sj://snapshots/${STORJ_DIRNAME}/metadata.json"
+    else
+        echo "Storj upload disabled or not configured"
+    fi
+    
+    # Clean up old snapshots (keep last 5)
+    echo "Cleaning up old snapshots..."
+    cd /snapshots
+    ls -t *.tar.gz 2>/dev/null | tail -n +6 | xargs -r rm -f
+    echo "Cleanup complete"
+    
+    echo "Snapshot creation completed successfully!"
+    echo "Local path: ${SNAPSHOT_PATH}"
+    echo "Download URL: http://${DOMAIN_NAME}/${SNAPSHOT_FILENAME}"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: snapshot-nginx-config
+  namespace: custom-node
+data:
+  default.conf: |
+    server {
+        listen 80;
+        server_name _;
+        
+        root /usr/share/nginx/html;
+        
+        # Enable directory listing
+        autoindex on;
+        autoindex_exact_size off;
+        autoindex_localtime on;
+        
+        # Enable gzip for responses
+        gzip on;
+        gzip_types application/json text/plain;
+        
+        # Main location for serving snapshots
+        location / {
+            try_files $uri $uri/ =404;
+            
+            # Set content type for tar.gz files
+            location ~ \.tar\.gz$ {
+                add_header Content-Type application/gzip;
+                add_header Content-Disposition 'attachment';
+            }
+            
+            # JSON files
+            location ~ \.json$ {
+                add_header Content-Type application/json;
+            }
+        }
+        
+        # Health check endpoint
+        location /health {
+            return 200 'OK';
+            add_header Content-Type text/plain;
+        }
+        
+        # Latest snapshot redirect
+        location = /latest {
+            return 302 /latest.tar.gz;
+        }
+    }
+

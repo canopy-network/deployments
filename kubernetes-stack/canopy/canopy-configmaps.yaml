@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: canopy-genesis
-  namespace: canopy
+  namespace: canopy-networks-nodes
 data:
   genesis.json: |
     {
@@ -103,8 +103,92 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: canopy-snapshot-config
+  namespace: canopy-networks-nodes
+data:
+  download-snapshot.sh: |
+    #!/bin/sh
+    set -e
+    
+    SNAPSHOT_URL="${SNAPSHOT_URL:-http://canopy-mainnet-latest-chain-id1.us.nodefleet.net}"
+    CANOPY_DATA_DIR="/root/.canopy/canopy"
+    SNAPSHOT_FILE="/tmp/snapshot.tar.gz"
+    
+    echo "🔍 Checking for existing canopy data..."
+    
+    # Check if canopy data directory exists and has content
+    if [ -d "$CANOPY_DATA_DIR" ] && [ "$(ls -A $CANOPY_DATA_DIR 2>/dev/null)" ]; then
+        echo "✅ Found existing canopy data in $CANOPY_DATA_DIR"
+        echo "📊 Data directory contents:"
+        ls -lh "$CANOPY_DATA_DIR" | head -10
+        echo "⏭️  Skipping snapshot download - using existing data"
+        exit 0
+    fi
+    
+    echo "📥 No existing data found. Downloading snapshot from $SNAPSHOT_URL"
+    
+    # Create canopy directory if it doesn't exist
+    mkdir -p "$CANOPY_DATA_DIR"
+    
+    # Download snapshot
+    echo "⬇️  Downloading snapshot..."
+    if command -v wget > /dev/null; then
+        wget -O "$SNAPSHOT_FILE" "$SNAPSHOT_URL" || {
+            echo "❌ Failed to download snapshot with wget"
+            exit 1
+        }
+    elif command -v curl > /dev/null; then
+        curl -L -o "$SNAPSHOT_FILE" "$SNAPSHOT_URL" || {
+            echo "❌ Failed to download snapshot with curl"
+            exit 1
+        }
+    else
+        echo "❌ Neither wget nor curl is available"
+        exit 1
+    fi
+    
+    # Verify snapshot file was downloaded
+    if [ ! -f "$SNAPSHOT_FILE" ]; then
+        echo "❌ Snapshot file not found after download"
+        exit 1
+    fi
+    
+    echo "✅ Snapshot downloaded successfully ($(du -h $SNAPSHOT_FILE | cut -f1))"
+    
+    # Extract snapshot
+    echo "📦 Extracting snapshot to $CANOPY_DATA_DIR..."
+    
+    # Clean up any existing partial data
+    rm -rf "$CANOPY_DATA_DIR"/*
+    
+    # Extract with progress if possible
+    if command -v pv > /dev/null; then
+        pv "$SNAPSHOT_FILE" | tar -xzf - -C "$CANOPY_DATA_DIR"
+    else
+        tar -xzf "$SNAPSHOT_FILE" -C "$CANOPY_DATA_DIR"
+    fi
+    
+    # Verify extraction
+    if [ ! "$(ls -A $CANOPY_DATA_DIR 2>/dev/null)" ]; then
+        echo "❌ Snapshot extraction failed - directory is empty"
+        exit 1
+    fi
+    
+    echo "✅ Snapshot extracted successfully"
+    echo "📊 Extracted data:"
+    ls -lh "$CANOPY_DATA_DIR" | head -10
+    
+    # Clean up snapshot file
+    echo "🧹 Cleaning up snapshot file..."
+    rm -f "$SNAPSHOT_FILE"
+    
+    echo "✅ Snapshot setup complete!"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: canopy-config-template
-  namespace: canopy
+  namespace: canopy-networks-nodes
 data:
   config-template.json: |
     {
@@ -115,10 +199,6 @@ data:
         {
           "chainId": 1,
           "url": "http://PLACEHOLDER_NODE_HOSTNAME:50002"
-        },
-        {
-          "chainId": 2,
-          "url": "http://node2.canopy.svc.cluster.local:50002"
         }
       ],
       "runVDF": true,
@@ -134,32 +214,36 @@ data:
       "dataDirPath": "/root/.canopy",
       "dbName": "canopy",
       "inMemory": false,
-      "networkID": 2,
+      "networkID": 1,
       "listenAddress": "0.0.0.0:9001",
       "externalAddress": "PLACEHOLDER_EXTERNAL_ADDRESS",
       "maxInbound": 21,
       "maxOutbound": 7,
-      "trutedPeersIDs": null,
+      "trustedPeerIDs": null,
       "dialPeers": [
-        "b88a5928e54cbf0a36e0b98f5bcf02de9a9a1deba6994739f9160181a609f516eb702936a0cbf4c1f2e7e6be5b8272f2@tcp://64.225.17.207",
-        "abda38eb50fbe53db9e9c3b141c6a1ec54ad40a4840e34784c975da4ee175eb4c5dd10b6d759ae8fdf8bc22511bbd97b@tcp://159.65.42.115",
-        "98d45087a99bcbfde91993502e77dde869d4485c3778fe46513958320da560823d56a0108f4cf3513393f4d561bc489b@tcp://159.89.181.58"
+        "90703d453dfa70af3c85f3605e6cc8222d01d68d439ee5a9ade10be631572b330e1793206c8d417d9693be1d5af417fe@tcp://cnpy.network",
+        "b338f09135994130bee5da939513241b5d01ba5e73c409ed5ecea597b86a8b9c05fd27fb5e47a7296350fbae6262a484@tcp://cnpynetwork.com",
+        "9353441f5319ca7b9ee2f8bd764a8c75e3b6b7b13a18b0c4e5252bc0b1232861318b3063255238edc1fb96f08fa2157a@tcp://canopy.seed1.node1.eu.nodefleet.net",
+        "a3d591f2e602fd18df7c94abf02f6d342939570b169886bb355e6879cd7b9dda8c5d825f7895336d4e29750e65fc65df@tcp://canopy.seed1.node1.us.nodefleet.net"
       ],
-      "bannedPeersIDs": null,
+      "bannedPeerIDs": null,
       "bannedIPs": null,
-      "newHeightTimeoutMS": 2000,
-      "electionTimeoutMS": 2000,
-      "electionVoteTimeoutMS": 2000,
-      "proposeTimeoutMS": 4000,
+      "minimumPeersToStart": 0,
+      "newHeightTimeoutMS": 4500,
+      "electionTimeoutMS": 1500,
+      "electionVoteTimeoutMS": 1500,
+      "proposeTimeoutMS": 2500,
       "proposeVoteTimeoutMS": 4000,
       "precommitTimeoutMS": 2000,
       "precommitVoteTimeoutMS": 2000,
       "commitTimeoutMS": 2000,
       "roundInterruptTimeoutMS": 2000,
-      "maxTotalBytes": 10000000,
+      "maxTotalBytes": 1000000,
       "maxTransactionCount": 5000,
       "individualMaxTxSize": 4000,
-      "dropPercentage": 35
+      "dropPercentage": 35,
+      "metricsEnabled": true,
+      "prometheusAddress": "0.0.0.0:9090"
     }
   setup-config.sh: |
     #!/bin/bash
@@ -183,10 +267,10 @@ data:
     
     # Dynamic values based on hostname - all nodes use their own service names
     NODE_SERVICE_NAME="node${NODE_NUM}"
-    NODE_HOSTNAME="${NODE_SERVICE_NAME}.canopy.svc.cluster.local"
-    RPC_URL="http://${NODE_SERVICE_NAME}.canopy.svc.cluster.local:50002"
-    ADMIN_RPC_URL="http://${NODE_SERVICE_NAME}.canopy.svc.cluster.local:50003"
-    EXTERNAL_ADDRESS="tcp://${NODE_SERVICE_NAME}.test.nodefleet.net"
+    NODE_HOSTNAME="${NODE_SERVICE_NAME}.canopy-networks-nodes.svc.cluster.local"
+    RPC_URL="http://${NODE_SERVICE_NAME}.canopy-networks-nodes.svc.cluster.local:50002"
+    ADMIN_RPC_URL="http://${NODE_SERVICE_NAME}.canopy-networks-nodes.svc.cluster.local:50003"
+    EXTERNAL_ADDRESS="tcp://173.201.36.85:9001"
     
     echo "Configuring node $NODE_NUM with dynamic values based on hostname"
     
@@ -235,17 +319,17 @@ data:
     if command -v jq > /dev/null; then
         echo "Using jq for JSON manipulation"
         
-        # Update networkID to be unique per node
-        jq ".networkID = $NODE_NUM" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
+        # Update networkID for mainnet full node (always 1 for mainnet)
+        jq ".networkID = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
         
-        # Update chainId to be consistent
+        # Update chainId to be consistent (mainnet chainId is 1)
         jq ".chainId = 1" /root/.canopy/config.json > /tmp/config.json && mv /tmp/config.json /root/.canopy/config.json
         
     else
         echo "Using sed for configuration (jq not available)"
         
-        # Update networkID using sed
-        sed -i "s|\"networkID\": [0-9]*|\"networkID\": $NODE_NUM|g" /root/.canopy/config.json
+        # Update networkID for mainnet full node (always 1 for mainnet)
+        sed -i "s|\"networkID\": [0-9]*|\"networkID\": 1|g" /root/.canopy/config.json
     fi
     
     echo "Config setup complete for node $NODE_NUM"

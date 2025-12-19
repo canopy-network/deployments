@@ -1,0 +1,67 @@
+# Certificate for monitoring.app.canopynetwork.org
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: monitoring-tls
+  namespace: monitoring
+spec:
+  secretName: monitoring-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+    - monitoring.app.canopynetwork.org
+---
+# IngressRoute for Grafana
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana-monitoring
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - kind: Rule
+      match: Host(`monitoring.app.canopynetwork.org`)
+      services:
+        - name: grafana
+          port: 3000
+  tls:
+    secretName: monitoring-tls
+---
+# HTTP to HTTPS redirect middleware
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: redirect-https
+  namespace: monitoring
+spec:
+  redirectScheme:
+    scheme: https
+    permanent: true
+---
+# IngressRoute for HTTP redirect
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: grafana-monitoring-redirect
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`monitoring.app.canopynetwork.org`)
+      middlewares:
+        - name: redirect-https
+          namespace: monitoring
+      services:
+        - name: grafana
+          port: 3000
+

@@ -23,7 +23,7 @@ http:
     basic-auth:
       basicAuth:
         users:
-          - "canopy:$apr1$GnHnOP0b$zWcOv5kosOuUAuvrlu72C0"
+          - "canopy:$2y$05$saP8QRHxRgxuTVRFdcrzMetLjh2blP4l1th2HTYoP7YhWhQQenOM."
 
     strip-wallet-prefix:
       stripPrefix:

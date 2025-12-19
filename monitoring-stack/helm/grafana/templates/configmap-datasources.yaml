@@ -1,0 +1,14 @@
+{{- if .Values.datasources.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana.fullname" . }}-datasources
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+data:
+  automatic.yaml: |
+{{- toYaml .Values.datasources.config | nindent 4 }}
+{{- end }}
+
+

@@ -1,0 +1,55 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    node: "{{ node_name }}"
+    cluster: "canopy-headless"
+
+rule_files:
+  - "alert-rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Canopy Node 1
+  - job_name: 'canopy-node1'
+    static_configs:
+      - targets: ['node1:50002']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    honor_labels: true
+
+  # Canopy Node 2
+  - job_name: 'canopy-node2'
+    static_configs:
+      - targets: ['node2:40002']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    honor_labels: true
+
+  # Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+
+  # Blackbox Exporter
+  - job_name: 'blackbox'
+    static_configs:
+      - targets: ['blackbox:9115']
+
+  # Loki
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+
+# Federation configuration
+# This allows the central Prometheus to scrape this instance
+# The central Prometheus should be configured to scrape this instance's /federate endpoint 

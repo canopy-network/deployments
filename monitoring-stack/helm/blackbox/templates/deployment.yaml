@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "blackbox.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "blackbox.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "blackbox.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "blackbox.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "blackbox.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: blackbox
+        image: "{{ .Values.server.image.repository }}:{{ .Values.server.image.tag }}"
+        imagePullPolicy: {{ .Values.server.image.pullPolicy }}
+        args:
+        - '--config.file=/etc/blackbox_exporter/config.yml'
+        ports:
+        - containerPort: {{ .Values.service.targetPort }}
+          name: http
+        {{- if .Values.probes.liveness.enabled }}
+        livenessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          successThreshold: {{ .Values.probes.liveness.successThreshold }}
+        {{- end }}
+        {{- if .Values.probes.readiness.enabled }}
+        readinessProbe:
+          httpGet:
+            path: /metrics
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          successThreshold: {{ .Values.probes.readiness.successThreshold }}
+        {{- end }}
+        volumeMounts:
+        - name: blackbox-config
+          mountPath: /etc/blackbox_exporter
+        resources:
+          {{- toYaml .Values.server.resources | nindent 10 }}
+      volumes:
+      - name: blackbox-config
+        configMap:
+          name: {{ include "blackbox.fullname" . }}-config
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+
+

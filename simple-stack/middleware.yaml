@@ -1,0 +1,34 @@
+http:
+  middlewares:
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+        port: "443"
+
+    wallet-prefix:
+      addPrefix:
+        prefix: "/wallet"
+
+    explorer-prefix:
+      addPrefix:
+        prefix: "/explorer"
+
+    remove-referrer-policy:
+      headers:
+        referrerPolicy: ""  # Empty string to remove the default policy
+        customResponseHeaders:
+          Referrer-Policy: ""  # This explicitly removes the header
+
+    basic-auth:
+      basicAuth:
+        users:
+          - "circle9:$apr1$i/KP2z.l$vvJLBgoiWzJNi9YZrMAJc0"
+
+    websocket-headers:
+      headers:
+        customRequestHeaders:
+          Connection: "Upgrade"
+          Upgrade: "websocket"
+        customResponseHeaders:
+          Access-Control-Allow-Origin: "*"

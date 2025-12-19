@@ -1,0 +1,18 @@
+apiVersion: v2
+name: grafana
+description: A Helm chart for Grafana visualization
+type: application
+version: 0.1.0
+appVersion: "12.2.0-16557133545"
+keywords:
+  - visualization
+  - dashboards
+  - grafana
+home: https://grafana.com/oss/grafana/
+sources:
+  - https://github.com/grafana/grafana
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net
+
+

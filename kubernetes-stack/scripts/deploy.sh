@@ -64,8 +64,8 @@ print_status "ConfigMaps created successfully"
 
 # Verify canopy ConfigMaps are created
 print_status "Verifying canopy ConfigMaps..."
-kubectl get configmap canopy-genesis -n canopy
-kubectl get configmap all-node-configs -n canopy
+kubectl get configmap canopy-genesis -n canopy-networks-nodes
+kubectl get configmap canopy-config-template -n canopy-networks-nodes
 print_status "Canopy ConfigMaps verified successfully"
 
 # Deploy monitoring stack
@@ -87,7 +87,7 @@ kubectl wait --for=condition=ready pod -l app=prometheus -n monitoring --timeout
 kubectl wait --for=condition=ready pod -l app=grafana -n monitoring --timeout=300s
 kubectl wait --for=condition=ready pod -l app=loki -n monitoring --timeout=300s
 kubectl wait --for=condition=ready pod -l app=haproxy -n monitoring --timeout=300s
-kubectl wait --for=condition=ready pod -l app=canopy-node -n canopy --timeout=600s
+kubectl wait --for=condition=ready pod -l app=canopy-node -n canopy-networks-nodes --timeout=600s
 
 print_status "All pods are ready!"
 
@@ -100,7 +100,7 @@ echo "=================="
 
 echo ""
 print_status "Canopy namespace:"
-kubectl get pods -n canopy
+kubectl get pods -n canopy-networks-nodes
 
 echo ""
 print_status "Monitoring namespace:"
@@ -108,7 +108,7 @@ kubectl get pods -n monitoring
 
 echo ""
 print_status "Services:"
-kubectl get svc -n canopy
+kubectl get svc -n canopy-networks-nodes
 kubectl get svc -n monitoring
 
 echo ""
@@ -125,13 +125,13 @@ print_warning "SSL certificates should be configured for production use"
 
 echo ""
 print_status "To check logs:"
-echo "kubectl logs -f canopy-node-0 -n canopy"
+echo "kubectl logs -f canopy-node-0 -n canopy-networks-nodes"
 echo "kubectl logs -f deployment/grafana -n monitoring"
 echo "kubectl logs -f deployment/prometheus -n monitoring"
 
 echo ""
 print_status "To scale Canopy nodes:"
-echo "kubectl scale statefulset canopy-node --replicas=5 -n canopy"
+echo "kubectl scale statefulset canopy-node --replicas=5 -n canopy-networks-nodes"
 
 echo ""
 print_status "To clean up and redeploy:"

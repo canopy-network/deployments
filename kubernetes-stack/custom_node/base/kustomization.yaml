@@ -7,8 +7,12 @@ resources:
   - namespace.yaml
   - nodes.yaml
   - seed-node.yaml
+  - snapshot-node.yaml
   - configmaps.yaml
   - seed-configmaps.yaml
+  - snapshot-node-configmaps.yaml
+  - snapshot-tool.yaml
+  - snapshot-tool-configmaps.yaml
 
 # ConfigMap generators for customizable resources
 configMapGenerator:

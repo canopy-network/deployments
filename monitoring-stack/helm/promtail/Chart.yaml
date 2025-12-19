@@ -1,0 +1,18 @@
+apiVersion: v2
+name: promtail
+description: A Helm chart for Promtail - Loki log collector agent
+type: application
+version: 0.1.0
+appVersion: "3.0.0"
+keywords:
+  - logging
+  - logs
+  - promtail
+  - loki
+home: https://grafana.com/oss/loki/
+sources:
+  - https://github.com/grafana/loki
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net
+

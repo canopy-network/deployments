@@ -25,56 +25,26 @@ spec:
         operator: "Exists"
         effect: "NoSchedule"
       volumes:
-      - name: canopy-localnet-genesis
+      - name: canopy-genesis
         configMap:
-          name: canopy-localnet-genesis
-      - name: canopy-localnet-config-template
+          name: canopy-genesis
+      - name: canopy-config-template
         configMap:
-          name: canopy-localnet-config-template
-      - name: node1-validator-key
-        configMap:
-          name: canopy-localnet-node1-validator-key
-      - name: node1-keystore
-        configMap:
-          name: canopy-localnet-node1-keystore
-      - name: node2-validator-key
-        configMap:
-          name: canopy-localnet-node2-validator-key
-      - name: node2-keystore
-        configMap:
-          name: canopy-localnet-node2-keystore
-      - name: node3-validator-key
-        configMap:
-          name: canopy-localnet-node3-validator-key
-      - name: node3-keystore
-        configMap:
-          name: canopy-localnet-node3-keystore
+          name: canopy-config-template
       initContainers:
-      - name: setup-localnet-config
+      - name: setup-config
         image: busybox:1.35
-        command: ["/bin/sh", "/configs/setup-localnet-config.sh"]
+        command: ["/bin/sh", "/configs/setup-config.sh"]
         volumeMounts:
-        - name: canopy-localnet-config-template
+        - name: canopy-config-template
           mountPath: /configs
         - name: canopy-data
           mountPath: /root/.canopy/
-        - name: node1-validator-key
-          mountPath: /validator-keys/node1
-        - name: node1-keystore
-          mountPath: /keystores/node1
-        - name: node2-validator-key
-          mountPath: /validator-keys/node2
-        - name: node2-keystore
-          mountPath: /keystores/node2
-        - name: node3-validator-key
-          mountPath: /validator-keys/node3
-        - name: node3-keystore
-          mountPath: /keystores/node3
       containers:
       - name: canopy
         image: canopynetwork/canopy:latest
-        imagePullPolicy: IfNotPresent
-        args: ["start"]
+        imagePullPolicy: Always
+        command: ["start"]
         ports:
         - containerPort: 50000  # Wallet
           name: wallet
@@ -100,11 +70,11 @@ spec:
         - name: REPO_OWNER 
           value: "canopy-network"
         - name: BRANCH
-          value: "latest"
+          value: "no-sync-issue"
         volumeMounts:
         - name: canopy-data
           mountPath: /root/.canopy
-        - name: canopy-localnet-genesis
+        - name: canopy-genesis
           mountPath: /root/.canopy/genesis.json
           subPath: genesis.json
         resources:

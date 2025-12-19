@@ -1,0 +1,155 @@
+---
+- name: Deploy Canopy Headless Monitoring Stack
+  hosts: canopy_nodes
+  become: yes
+  vars:
+    canopy_user: "{{ ansible_user | default('ubuntu') }}"
+    canopy_home: "/home/{{ canopy_user }}/canopy"
+    docker_compose_version: "2.20.0"
+    central_prometheus_url: "{{ central_prometheus_url | default('http://central-prometheus:9090') }}"
+    node_name: "{{ inventory_hostname }}"
+    
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install required packages
+      apt:
+        name:
+          - docker.io
+          - docker-compose
+          - python3-pip
+          - curl
+          - wget
+          - git
+          - unzip
+        state: present
+
+    - name: Add user to docker group
+      user:
+        name: "{{ canopy_user }}"
+        groups: docker
+        append: yes
+
+    - name: Start and enable Docker service
+      systemd:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Create canopy directory structure
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: "{{ canopy_user }}"
+        group: "{{ canopy_user }}"
+        mode: '0755'
+      loop:
+        - "{{ canopy_home }}"
+        - "{{ canopy_home }}/canopy_data"
+        - "{{ canopy_home }}/canopy_data/node1"
+        - "{{ canopy_home }}/canopy_data/node1/canopy"
+        - "{{ canopy_home }}/canopy_data/node1/logs"
+        - "{{ canopy_home }}/canopy_data/node2"
+        - "{{ canopy_home }}/canopy_data/node2/canopy"
+        - "{{ canopy_home }}/canopy_data/node2/logs"
+        - "{{ canopy_home }}/monitoring-stack"
+        - "{{ canopy_home }}/monitoring-stack/monitoring"
+        - "{{ canopy_home }}/monitoring-stack/monitoring/prometheus"
+        - "{{ canopy_home }}/monitoring-stack/monitoring/prometheus/data"
+        - "{{ canopy_home }}/monitoring-stack/monitoring/loki"
+        - "{{ canopy_home }}/monitoring-stack/monitoring/loki/data"
+        - "{{ canopy_home }}/monitoring-stack/monitoring/blackbox"
+        - "{{ canopy_home }}/monitoring-stack/monitoring/grafana"
+
+    - name: Copy headless stack files
+      copy:
+        src: "headless-stack/"
+        dest: "{{ canopy_home }}/"
+        owner: "{{ canopy_user }}"
+        group: "{{ canopy_user }}"
+        mode: '0644'
+    - name: Rename docker-compose file
+      file:
+        src: "{{ canopy_home }}/headless-stack/docker-compose.headless.yaml"
+        dest: "{{ canopy_home }}/headless-stack/docker-compose.yaml"
+        state: link
+      ignore_errors: yes
+
+    - name: Create .env file for headless deployment
+      template:
+        src: headless.env.j2
+        dest: "{{ canopy_home }}/headless-stack/.env"
+        owner: "{{ canopy_user }}"
+        group: "{{ canopy_user }}"
+        mode: '0600'
+      vars:
+        node_name: "{{ node_name }}"
+        central_prometheus_url: "{{ central_prometheus_url }}"
+
+    - name: Create headless Prometheus configuration
+      template:
+        src: prometheus.headless.yml.j2
+        dest: "{{ canopy_home }}/headless-stack/monitoring/prometheus/prometheus.headless.yml"
+        owner: "{{ canopy_user }}"
+        group: "{{ canopy_user }}"
+        mode: '0644'
+      vars:
+        node_name: "{{ node_name }}"
+        central_prometheus_url: "{{ central_prometheus_url }}"
+
+    - name: Create systemd service for canopy headless monitoring
+      template:
+        src: canopy-monitoring.service.j2
+        dest: /etc/systemd/system/canopy-headless-monitoring.service
+        mode: '0644'
+
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and start canopy headless monitoring service
+      systemd:
+        name: canopy-headless-monitoring
+        state: started
+        enabled: yes
+
+    - name: Wait for services to be ready
+      wait_for:
+        port: "{{ item }}"
+        host: "{{ ansible_default_ipv4.address }}"
+        timeout: 300
+      loop:
+        - 9090  # Prometheus
+        - 3100  # Loki
+        - 9001  # Node1 P2P
+        - 9002  # Node2 P2P
+
+    - name: Verify Prometheus federation endpoint
+      uri:
+        url: "http://{{ ansible_default_ipv4.address }}:9090/federate?match[]={job=~\"canopy.*\"}"
+        method: GET
+        status_code: 200
+      register: prometheus_federation_check
+
+    - name: Display federation endpoint info
+      debug:
+        msg: |
+          Prometheus federation endpoint is ready at:
+          http://{{ ansible_default_ipv4.address }}:9090/federate
+          
+          To configure central Prometheus, add this to your central Prometheus config:
+          
+          scrape_configs:
+            - job_name: 'federate-canopy-{{ node_name }}'
+              honor_labels: true
+              metrics_path: '/federate'
+              params:
+                'match[]':
+                  - '{job=~"canopy.*"}'
+                  - '{job=~"node-exporter"}'
+                  - '{job=~"cadvisor"}'
+              static_configs:
+                - targets: ['{{ ansible_default_ipv4.address }}:9090'] 

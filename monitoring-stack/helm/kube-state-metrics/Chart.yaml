@@ -1,0 +1,18 @@
+apiVersion: v2
+name: kube-state-metrics
+description: A Helm chart for kube-state-metrics - Kubernetes object state metrics
+type: application
+version: 0.1.0
+appVersion: "2.13.0"
+keywords:
+  - monitoring
+  - metrics
+  - kubernetes
+  - kube-state-metrics
+home: https://github.com/kubernetes/kube-state-metrics
+sources:
+  - https://github.com/kubernetes/kube-state-metrics
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net
+

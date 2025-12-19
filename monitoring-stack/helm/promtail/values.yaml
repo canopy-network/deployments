@@ -1,0 +1,163 @@
+# Promtail Helm Chart Values
+# Log collector agent for Loki with Kubernetes Service Discovery
+
+# Promtail configuration
+promtail:
+  image:
+    repository: grafana/promtail
+    tag: "3.0.0"
+    pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+
+  # Loki endpoint
+  loki:
+    url: http://loki:3100/loki/api/v1/push
+
+  # Promtail configuration
+  config:
+    server:
+      http_listen_port: 3101
+      grpc_listen_port: 0
+    
+    positions:
+      filename: /run/promtail/positions.yaml
+    
+    clients:
+      - url: http://loki:3100/loki/api/v1/push
+        tenant_id: ""
+    
+    scrape_configs:
+      # Scrape logs from all pods
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        pipeline_stages:
+          - cri: {}
+        relabel_configs:
+          # Keep only pods with logs
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: __host__
+          
+          # Drop pods in kube-system namespace (optional - comment out to include)
+          # - source_labels: [__meta_kubernetes_namespace]
+          #   action: drop
+          #   regex: kube-system
+          
+          # Set the namespace label
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          
+          # Set the pod name label
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          
+          # Set the container name label
+          - source_labels: [__meta_kubernetes_pod_container_name]
+            action: replace
+            target_label: container
+          
+          # Set the node name label
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            action: replace
+            target_label: node
+          
+          # Set the app label from pod labels
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: replace
+            target_label: app
+          
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            action: replace
+            target_label: app
+          
+          # Set job label from pod labels
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_instance]
+            action: replace
+            target_label: instance
+          
+          # Use pod UID as unique identifier
+          - source_labels: [__meta_kubernetes_pod_uid, __meta_kubernetes_pod_container_name]
+            target_label: __path__
+            separator: /
+            replacement: /var/log/pods/*$1/*.log
+
+      # Scrape system logs (journal)
+      - job_name: journal
+        journal:
+          max_age: 12h
+          labels:
+            job: systemd-journal
+        relabel_configs:
+          - source_labels: ['__journal__systemd_unit']
+            target_label: 'unit'
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: "promtail"
+  annotations: {}
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Security context for containers
+securityContext:
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+  allowPrivilegeEscalation: false
+
+# Pod security context
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations - allow scheduling on all nodes including control-plane
+tolerations:
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+
+# Affinity
+affinity: {}
+
+# Extra volumes to mount
+extraVolumes:
+  - name: containers
+    hostPath:
+      path: /var/lib/docker/containers
+  - name: pods
+    hostPath:
+      path: /var/log/pods
+  - name: run
+    hostPath:
+      path: /run/promtail
+
+# Extra volume mounts
+extraVolumeMounts:
+  - name: containers
+    mountPath: /var/lib/docker/containers
+    readOnly: true
+  - name: pods
+    mountPath: /var/log/pods
+    readOnly: true
+  - name: run
+    mountPath: /run/promtail
+

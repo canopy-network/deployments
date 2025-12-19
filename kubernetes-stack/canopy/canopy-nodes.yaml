@@ -2,10 +2,10 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: canopy-node
-  namespace: canopy
+  namespace: canopy-networks-nodes
 spec:
   serviceName: canopy-node-headless
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: canopy-node
@@ -57,7 +57,33 @@ spec:
       - name: canopy-config-template
         configMap:
           name: canopy-config-template
+      - name: snapshot-script
+        configMap:
+          name: canopy-snapshot-config
+          defaultMode: 0755
       initContainers:
+      - name: download-snapshot
+        image: alpine:latest
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          apk add --no-cache wget curl > /dev/null 2>&1 || true
+          /scripts/download-snapshot.sh
+        env:
+        - name: SNAPSHOT_URL
+          value: "http://canopy-mainnet-latest-chain-id1.us.nodefleet.net"
+        volumeMounts:
+        - name: snapshot-script
+          mountPath: /scripts
+        - name: canopy-data
+          mountPath: /root/.canopy
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
       - name: setup-config
         image: busybox:1.35
         command: ["/bin/sh", "/configs/setup-config.sh"]
@@ -68,8 +94,9 @@ spec:
           mountPath: /root/.canopy/ 
       containers:
       - name: canopy
-        image: nodefleet/canopy:latest
-        imagePullPolicy: IfNotPresent
+        image: canopynetwork/canopy:latest
+        imagePullPolicy: Always
+        command: ["/app/entrypoint.sh"]
         args: ["start"]
         ports:
         - containerPort: 50000  # Wallet
@@ -136,7 +163,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: canopy-node-headless
-  namespace: canopy
+  namespace: canopy-networks-nodes
 spec:
   clusterIP: None
   selector:
@@ -165,7 +192,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: canopy-node
-  namespace: canopy
+  namespace: canopy-networks-nodes
 spec:
   selector:
     app: canopy-node
@@ -194,7 +221,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: node1
-  namespace: canopy
+  namespace: canopy-networks-nodes
 spec:
   selector:
     app: canopy-node
@@ -224,7 +251,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: node2
-  namespace: canopy
+  namespace: canopy-networks-nodes
 spec:
   selector:
     app: canopy-node
@@ -254,7 +281,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: node3
-  namespace: canopy
+  namespace: canopy-networks-nodes
 spec:
   selector:
     app: canopy-node

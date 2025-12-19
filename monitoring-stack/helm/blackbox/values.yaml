@@ -1,0 +1,127 @@
+# Blackbox Exporter Helm Chart Values
+# Based on monitoring-stack docker-compose.yaml configuration
+
+# Blackbox server configuration
+server:
+  image:
+    repository: prom/blackbox-exporter
+    tag: "v0.27.0"
+    pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+  
+  config:
+    modules:
+      http_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          method: GET
+          preferred_ip_protocol: "ip4"
+      
+      check_block_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes:
+            - 200
+            - 201
+          method: POST
+          headers:
+            content-type: application/json
+          body: '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":83}'
+          preferred_ip_protocol: "ip4"
+          ip_protocol_fallback: false
+          fail_if_body_not_matches_regexp: [".*result.*"]
+      
+      http_200:
+        prober: http
+        timeout: 2s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2"]
+          valid_status_codes:
+            - 200
+            - 201
+          method: GET
+          headers:
+            User-Agent: "Mozilla/5.0 (blackbox_exporter) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36"
+            Accept-Language: 'en-US,en;q=0.9,de-DE,de;q=0.2'
+          no_follow_redirects: true
+          fail_if_ssl: false
+          fail_if_not_ssl: false
+          tls_config:
+            insecure_skip_verify: false
+          preferred_ip_protocol: "ip4"
+      
+      check_canopy_block_2xx:
+        prober: http
+        timeout: 5s
+        http:
+          valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+          valid_status_codes:
+            - 200
+            - 201
+          method: POST
+          headers:
+            content-type: application/json
+          body: '{}'
+          preferred_ip_protocol: "ip4"
+          ip_protocol_fallback: false
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 9115
+  targetPort: 9115
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: "blackbox"
+  annotations: {}
+
+# Security context - privileged mode as per docker-compose
+securityContext:
+  privileged: true
+
+# Pod security context
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  runAsNonRoot: false
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Liveness and readiness probes
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+
+

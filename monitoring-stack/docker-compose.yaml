@@ -23,7 +23,7 @@ services:
       args:
         BUILD_PATH: cmd/cli
         BIN_PATH: $BIN_PATH
-        BRANCH: latest 
+        BRANCH: main 
     env_file:
       - .env
     ports:

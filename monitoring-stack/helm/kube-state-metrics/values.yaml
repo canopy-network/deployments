@@ -1,0 +1,111 @@
+# kube-state-metrics Helm Chart Values
+# Exposes Kubernetes object state as Prometheus metrics
+
+image:
+  repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
+  tag: "v2.13.0"
+  pullPolicy: IfNotPresent
+
+resources:
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+
+# Metrics to collect (all by default)
+collectors:
+  - certificatesigningrequests
+  - configmaps
+  - cronjobs
+  - daemonsets
+  - deployments
+  - endpoints
+  - horizontalpodautoscalers
+  - ingresses
+  - jobs
+  - leases
+  - limitranges
+  - mutatingwebhookconfigurations
+  - namespaces
+  - networkpolicies
+  - nodes
+  - persistentvolumeclaims
+  - persistentvolumes
+  - poddisruptionbudgets
+  - pods
+  - replicasets
+  - replicationcontrollers
+  - resourcequotas
+  - secrets
+  - services
+  - statefulsets
+  - storageclasses
+  - validatingwebhookconfigurations
+  - volumeattachments
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: "kube-state-metrics"
+  annotations: {}
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Security context
+securityContext:
+  runAsUser: 65534
+  runAsGroup: 65534
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 65534
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Liveness and readiness probes
+probes:
+  liveness:
+    enabled: true
+    httpGet:
+      path: /healthz
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readiness:
+    enabled: true
+    httpGet:
+      path: /
+      port: 8080
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+

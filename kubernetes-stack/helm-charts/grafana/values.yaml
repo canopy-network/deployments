@@ -110,6 +110,7 @@ datasources:
     apiVersion: 1
     datasources:
       - name: Prometheus
+        uid: prometheus
         type: prometheus
         access: proxy
         url: http://prometheus.monitoring.svc.cluster.local:9090
@@ -117,6 +118,7 @@ datasources:
         editable: true
       
       - name: Loki
+        uid: loki
         type: loki
         access: proxy
         url: http://loki.monitoring.svc.cluster.local:3100

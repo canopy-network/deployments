@@ -1,0 +1,133 @@
+version: '3.8'
+
+x-loki:
+  &loki-logging
+  driver: loki
+  options:
+    loki-url: "http://localhost:3100/loki/api/v1/push"
+    max-size: 5m
+    mode: non-blocking
+    max-buffer-size: 4m
+    loki-retries: '3'
+    max-file: '3'
+    keep-file: 'false'
+
+services:
+  node1:
+    container_name: node1
+    hostname: node1
+    image: canopynetwork/canopy
+    build:
+      context: ../docker_image
+      dockerfile: ./Dockerfile
+      network: host
+      args:
+        EXPLORER_BASE_PATH: '/'
+        WALLET_BASE_PATH: '/'
+        BUILD_PATH: cmd/cli
+        BIN_PATH: $BIN_PATH
+        BRANCH: latest
+    env_file:
+      - .env
+    ports:
+      - 9001:9001 # TCP P2P
+    expose:
+      - 50000 # Wallet
+      - 50001 # Explorer
+      - 50002 # RPC
+      - 50003 # Admin RPC
+    command: [ "start" ]
+    volumes:
+      - ../canopy_data/node1:/root/.canopy
+      - ../docker_image/entrypoint.sh:/app/entrypoint.sh
+    logging: *loki-logging
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+
+  node2:
+    container_name: node2
+    hostname: node2
+    image: canopynetwork/canopy
+    env_file:
+      - .env
+    ports:
+      - 9002:9002 # TCP P2P
+    expose:
+      - 40000 # Wallet
+      - 40001 # Explorer
+      - 40002 # RPC
+      - 40003 # Admin RPC
+    command: [ "start" ]
+    volumes:
+      - ../canopy_data/node2:/root/.canopy
+      - ../docker_image/entrypoint.sh:/app/entrypoint.sh
+    logging: *loki-logging
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: "2.0"
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: prometheus
+    user: root
+    volumes:
+      - ./monitoring/prometheus/prometheus.headless.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/data:/prometheus/data
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus/data'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    expose:
+      - 9090
+    restart: always
+    logging: *loki-logging
+
+  loki:
+    image: grafana/loki:3.4.4
+    container_name: loki
+    volumes:
+      - ./monitoring/loki/config.yaml:/etc/loki/local-config.yaml
+      - ./monitoring/loki/data:/data/loki
+    expose:
+      - 3100
+    ports:
+      - "3100:3100" 
+    command: --config.file=/etc/loki/local-config.yaml
+    restart: always
+    logging: *loki-logging
+
+  blackbox:
+    container_name: blackbox
+    image: prom/blackbox-exporter:v0.27.0
+    privileged: true
+    expose:
+      - '9115'  
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.0
+    container_name: cadvisor
+    expose:
+      - 8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: node-exporter 
+    expose:
+      - 9100 
+    restart: always
+    logging: *loki-logging 

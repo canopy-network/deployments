@@ -1,0 +1,18 @@
+apiVersion: v2
+name: prometheus
+description: A Helm chart for Prometheus monitoring
+type: application
+version: 0.1.0
+appVersion: "v3.5.0"
+keywords:
+  - monitoring
+  - metrics
+  - prometheus
+home: https://prometheus.io/
+sources:
+  - https://github.com/prometheus/prometheus
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net
+
+

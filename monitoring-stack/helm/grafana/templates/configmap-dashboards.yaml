@@ -1,0 +1,34 @@
+{{- if .Values.dashboards.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana.fullname" . }}-dashboards-provisioning
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" . | nindent 4 }}
+data:
+  dashboard.yaml: |
+{{- toYaml .Values.dashboards.config | nindent 4 }}
+{{- end }}
+
+{{- if .Values.dashboards.enabled }}
+{{- if .Values.dashboards.files }}
+{{- range $key, $value := .Values.dashboards.files }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "grafana.fullname" $ }}-dashboard-{{ $key }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "grafana.labels" $ | nindent 4 }}
+data:
+{{- range $file, $content := $value }}
+  {{ $file }}: |
+{{- $content | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+

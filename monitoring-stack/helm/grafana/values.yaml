@@ -1,0 +1,156 @@
+# Grafana Helm Chart Values
+# Based on monitoring-stack docker-compose.yaml configuration
+
+# Grafana server configuration
+server:
+  image:
+    repository: grafana/grafana
+    tag: "12.2.0-16557133545"
+    pullPolicy: IfNotPresent
+  
+  resources:
+    limits:
+      memory: "2Gi"
+      cpu: "1"
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+  
+  persistentVolume:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+    accessMode: ReadWriteOnce
+  
+  # Environment variables
+  env:
+    GF_SECURITY_ADMIN_PASSWORD: admin
+    GF_USERS_ALLOW_SIGN_UP: "false"
+    GF_SERVER_HTTP_PORT: "3000"
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 3000
+  targetPort: 3000
+
+# ServiceAccount configuration
+serviceAccount:
+  create: true
+  name: "grafana"
+  annotations: {}
+
+# Security context
+securityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+
+# Pod security context
+podSecurityContext:
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
+  runAsNonRoot: false
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Liveness and readiness probes
+probes:
+  liveness:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+    successThreshold: 1
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+    successThreshold: 1
+
+# Datasources configuration
+datasources:
+  enabled: true
+  config:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        uid: prometheus
+        orgId: 1
+        type: prometheus
+        access: proxy
+        url: http://prometheus:9090
+        isDefault: true
+        editable: true
+      
+      - name: Loki
+        uid: loki
+        orgId: 1
+        type: loki
+        access: proxy
+        url: http://loki:3100
+        jsonData:
+          timeout: 60
+          maxLines: 1000
+
+# Dashboards configuration
+dashboards:
+  enabled: true
+  config:
+    apiVersion: 1
+    providers:
+      - name: "Canopy Dashboards"
+        orgId: 1
+        folder: "Canopy"
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /etc/grafana/dashboards/canopy
+      - name: "Infrastructure Dashboards"
+        orgId: 1
+        folder: "Infrastructure"
+        type: file
+        disableDeletion: false
+        updateIntervalSeconds: 10
+        allowUiUpdates: true
+        options:
+          path: /etc/grafana/dashboards/infrastructure
+          foldersFromFilesStructure: true
+  
+  # External ConfigMaps to mount as dashboards
+  # These are pre-created ConfigMaps containing dashboard JSON files
+  externalConfigMaps:
+    canopy:
+      - name: grafana-dashboards-canopy
+        mountPath: /etc/grafana/dashboards/canopy
+    infrastructure:
+      - name: grafana-dashboard-blackbox-exporter
+        mountPath: /etc/grafana/dashboards/infrastructure/blackbox
+      - name: grafana-dashboard-cadvisor-exporter
+        mountPath: /etc/grafana/dashboards/infrastructure/cadvisor
+      - name: grafana-dashboard-monitor-metrics
+        mountPath: /etc/grafana/dashboards/infrastructure/monitor
+      - name: grafana-dashboard-node-exporter-metrics
+        mountPath: /etc/grafana/dashboards/infrastructure/node-exporter
+      - name: grafana-dashboard-traefik-dashboard
+        mountPath: /etc/grafana/dashboards/infrastructure/traefik
+
+# Alerting configuration
+alerting:
+  enabled: false
+  config: {}
+
+

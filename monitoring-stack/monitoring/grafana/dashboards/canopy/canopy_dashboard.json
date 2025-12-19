@@ -43,7 +43,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -130,7 +130,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_stake_amount{job=\"canopy\"}",
+          "expr": "canopy_validator_stake_amount{job=\"canopy\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}:{{address}}",
@@ -145,7 +145,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -201,7 +201,32 @@
           },
           "unit": "CNPY"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "__systemRef": "hideSeriesFrom",
+            "matcher": {
+              "id": "byNames",
+              "options": {
+                "mode": "exclude",
+                "names": [
+                  "localnet-oracle-4: 02cd4e5eb53ea665702042a6ed6d31d616054dc5"
+                ],
+                "prefix": "All except:",
+                "readOnly": true
+              }
+            },
+            "properties": [
+              {
+                "id": "custom.hideFrom",
+                "value": {
+                  "legend": false,
+                  "tooltip": false,
+                  "viz": true
+                }
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 7,
@@ -232,7 +257,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_account_balance{instance=~\"$instance\"}",
+          "expr": "canopy_account_balance{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}: {{address}}",
@@ -247,7 +272,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -335,7 +360,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_syncing_status{instance=~\"$instance\"}",
+          "expr": "canopy_syncing_status{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -350,7 +375,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -456,7 +481,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_node_status{instance=~\"$instance\"}",
+          "expr": "canopy_node_status{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -471,7 +496,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -564,7 +589,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_status{instance=~\"$instance\"}",
+          "expr": "canopy_validator_status{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -579,7 +604,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -654,7 +679,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_type{instance=~\"$instance\"}",
+          "expr": "canopy_validator_type{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -669,7 +694,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -752,7 +777,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_compounding{instance=~\"$instance\"}",
+          "expr": "canopy_validator_compounding{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -767,7 +792,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -828,32 +853,7 @@
           },
           "unit": "Peers"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "node2:9090"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -884,7 +884,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_peer_total{instance=~\"$instance\"}",
+          "expr": "canopy_peer_total{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -899,7 +899,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -954,7 +954,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_peer_outbound{instance=~\"$instance\"}",
+          "expr": "canopy_peer_outbound{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -969,7 +969,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1024,7 +1024,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_peer_inbound{instance=~\"$instance\"}",
+          "expr": "canopy_peer_inbound{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1039,7 +1039,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1100,32 +1100,7 @@
           },
           "unit": "Peers"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "node1:9090"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 8,
@@ -1156,7 +1131,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_peer_inbound{instance=~\"$instance\"}",
+          "expr": "canopy_peer_inbound{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1171,7 +1146,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1240,7 +1215,7 @@
               "options": {
                 "mode": "exclude",
                 "names": [
-                  "node2:9090"
+                  "localnet-extra-101"
                 ],
                 "prefix": "All except:",
                 "readOnly": true
@@ -1288,7 +1263,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_peer_outbound{instance=~\"$instance\"}",
+          "expr": "canopy_peer_outbound{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1316,7 +1291,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1368,32 +1343,7 @@
           },
           "unit": "none"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "node2:9090"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -1424,7 +1374,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_height{instance=~\"$instance\"}",
+          "expr": "canopy_bft_height{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1439,7 +1389,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1495,32 +1445,7 @@
           },
           "unit": "s"
         },
-        "overrides": [
-          {
-            "__systemRef": "hideSeriesFrom",
-            "matcher": {
-              "id": "byNames",
-              "options": {
-                "mode": "exclude",
-                "names": [
-                  "node1:9090"
-                ],
-                "prefix": "All except:",
-                "readOnly": true
-              }
-            },
-            "properties": [
-              {
-                "id": "custom.hideFrom",
-                "value": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": true
-                }
-              }
-            ]
-          }
-        ]
+        "overrides": []
       },
       "gridPos": {
         "h": 7,
@@ -1551,7 +1476,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_block_processing_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_block_processing_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1566,7 +1491,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1629,7 +1554,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_block_processing_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_block_processing_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1644,7 +1569,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1731,7 +1656,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_size{instance=~\"$instance\"}",
+          "expr": "canopy_block_size{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1746,7 +1671,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1805,7 +1730,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_largest_txn{instance=~\"$instance\"}",
+          "expr": "canopy_block_largest_txn{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1820,7 +1745,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1875,7 +1800,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_transaction_count{instance=~\"$instance\"}",
+          "expr": "canopy_transaction_count{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1890,7 +1815,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -1945,7 +1870,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_height{instance=~\"$instance\"}",
+          "expr": "canopy_bft_height{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -1960,7 +1885,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2015,7 +1940,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_root_height{instance=~\"$instance\"}",
+          "expr": "canopy_bft_root_height{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2030,7 +1955,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2117,7 +2042,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_largest_txn{instance=~\"$instance\"}",
+          "expr": "canopy_block_largest_txn{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2132,7 +2057,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2192,7 +2117,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_size{instance=~\"$instance\"}",
+          "expr": "canopy_block_size{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2207,7 +2132,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2290,7 +2215,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_root_chain_info_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_root_chain_info_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2305,7 +2230,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2365,7 +2290,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_root_chain_info_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_root_chain_info_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2380,7 +2305,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2467,7 +2392,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_bft_propose_vote_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_bft_propose_vote_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2482,7 +2407,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2541,7 +2466,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_election_vote_time_sum{instance=~\"$instance\"}",
+          "expr": "canopy_bft_election_vote_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2556,7 +2481,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2642,7 +2567,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_vdf_iterations{instance=~\"$instance\"}",
+          "expr": "canopy_block_vdf_iterations{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2657,7 +2582,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2712,7 +2637,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_vdf_iterations{instance=~\"$instance\"}",
+          "expr": "canopy_block_vdf_iterations{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2740,7 +2665,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2833,7 +2758,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_round{instance=~\"$instance\"}",
+          "expr": "canopy_bft_round{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2848,7 +2773,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -2921,7 +2846,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_round{instance=~\"$instance\"}",
+          "expr": "canopy_bft_round{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -2936,7 +2861,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3027,7 +2952,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_bft_election_vote_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_bft_election_vote_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3042,7 +2967,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3102,7 +3027,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_election_vote_time_sum{instance=~\"$instance\"}",
+          "expr": "canopy_bft_election_vote_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3117,7 +3042,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3208,7 +3133,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_bft_propose_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_bft_propose_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3223,7 +3148,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3283,7 +3208,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_propose_time_sum{instance=~\"$instance\"}",
+          "expr": "canopy_bft_propose_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3298,7 +3223,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3414,7 +3339,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_bft_precommit_vote_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_bft_precommit_vote_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3429,7 +3354,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3489,7 +3414,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_precommit_time_sum{instance=~\"$instance\"}",
+          "expr": "canopy_bft_precommit_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3504,7 +3429,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3549,7 +3474,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "red",
@@ -3581,7 +3507,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -3590,7 +3516,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_bft_election_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_bft_election_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "__auto",
@@ -3605,7 +3531,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3617,7 +3543,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -3654,7 +3581,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -3663,7 +3590,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_election_time_sum{instance=~\"$instance\"}",
+          "expr": "canopy_bft_election_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3678,7 +3605,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3727,7 +3654,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -3763,7 +3691,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -3772,7 +3700,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_non_signer_percentage{instance=~\"$instance\"}",
+          "expr": "canopy_block_non_signer_percentage{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3787,7 +3715,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3799,7 +3727,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -3837,7 +3766,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -3846,7 +3775,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_block_non_signer_percentage{instance=~\"$instance\"}",
+          "expr": "canopy_block_non_signer_percentage{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3861,7 +3790,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -3906,7 +3835,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "yellow",
@@ -3967,7 +3897,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -3976,7 +3906,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "rate(canopy_bft_commit_time_sum{instance=~\"$instance\"}[$__rate_interval])",
+          "expr": "rate(canopy_bft_commit_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -3991,7 +3921,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -4003,7 +3933,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -4040,7 +3971,7 @@
         "showThresholdMarkers": true,
         "sizing": "auto"
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -4049,7 +3980,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_bft_commit_time_sum{instance=~\"$instance\"}",
+          "expr": "canopy_bft_commit_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -4062,7 +3993,7 @@
       "type": "gauge"
     },
     {
-      "collapsed": true,
+      "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -4070,1390 +4001,1405 @@
         "y": 91
       },
       "id": 31,
-      "panels": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "decbytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 0,
-            "y": 92
-          },
-          "id": 29,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_mempool_size{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "MempoolSize",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 1000
-                  },
-                  {
-                    "color": "red",
-                    "value": 3500
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 6,
-            "y": 92
-          },
-          "id": 28,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_mempool_size{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "MempoolSize",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "Txs"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 12,
-            "y": 92
-          },
-          "id": 27,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_mempool_tx_count{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "MempoolCount",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 1000
-                  },
-                  {
-                    "color": "red",
-                    "value": 3500
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 8,
-            "w": 6,
-            "x": 18,
-            "y": 92
-          },
-          "id": 30,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_mempool_tx_count{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "Mempool Tx count",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "s"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 0,
-            "y": 100
-          },
-          "id": 32,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "rate(canopy_store_commit_time_sum{instance=~\"$instance\"}[$__rate_interval])",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Commit Time",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 1.5
-                  },
-                  {
-                    "color": "red",
-                    "value": 2
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 6,
-            "y": 100
-          },
-          "id": 33,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "rate(canopy_store_commit_time_sum{instance=~\"$instance\"}[$__rate_interval])",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Commit Time",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "ms"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 12,
-            "y": 100
-          },
-          "id": 36,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_partition_time_sum{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Partition Time",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 5000
-                  },
-                  {
-                    "color": "red",
-                    "value": 10000
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 18,
-            "y": 100
-          },
-          "id": 37,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_partition_time_sum{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Partition Time",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 0,
-            "y": 107
-          },
-          "id": 38,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_commit_entries{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Commit Entries",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 1000000
-                  },
-                  {
-                    "color": "red",
-                    "value": 1500000
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 6,
-            "y": 107
-          },
-          "id": 39,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_commit_entries{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Commit Entries",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "red",
-                    "value": 80
-                  }
-                ]
-              },
-              "unit": "none"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 12,
-            "y": 107
-          },
-          "id": 34,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_partition_entries{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Partition Entries",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 1000000
-                  },
-                  {
-                    "color": "red",
-                    "value": 1500000
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 18,
-            "y": 107
-          },
-          "id": 35,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_partition_entries{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Partition Entries",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 0,
-            "y": 114
-          },
-          "id": 41,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_commit_size{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Commit Size",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 1000000
-                  },
-                  {
-                    "color": "red",
-                    "value": 10000000
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 6,
-            "y": 114
-          },
-          "id": 40,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_commit_size{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Commit  Size",
-          "type": "gauge"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "palette-classic"
-              },
-              "custom": {
-                "axisBorderShow": false,
-                "axisCenteredZero": false,
-                "axisColorMode": "text",
-                "axisLabel": "",
-                "axisPlacement": "auto",
-                "barAlignment": 0,
-                "barWidthFactor": 0.6,
-                "drawStyle": "line",
-                "fillOpacity": 0,
-                "gradientMode": "none",
-                "hideFrom": {
-                  "legend": false,
-                  "tooltip": false,
-                  "viz": false
-                },
-                "insertNulls": false,
-                "lineInterpolation": "linear",
-                "lineWidth": 1,
-                "pointSize": 5,
-                "scaleDistribution": {
-                  "type": "linear"
-                },
-                "showPoints": "auto",
-                "spanNulls": false,
-                "stacking": {
-                  "group": "A",
-                  "mode": "none"
-                },
-                "thresholdsStyle": {
-                  "mode": "off"
-                }
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  }
-                ]
-              },
-              "unit": "bytes"
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 12,
-            "y": 114
-          },
-          "id": 43,
-          "options": {
-            "legend": {
-              "calcs": [],
-              "displayMode": "list",
-              "placement": "bottom",
-              "showLegend": true
-            },
-            "tooltip": {
-              "hideZeros": false,
-              "mode": "single",
-              "sort": "none"
-            }
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_partition_size{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Partition Size",
-          "type": "timeseries"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "fieldConfig": {
-            "defaults": {
-              "color": {
-                "mode": "thresholds"
-              },
-              "mappings": [],
-              "thresholds": {
-                "mode": "absolute",
-                "steps": [
-                  {
-                    "color": "green"
-                  },
-                  {
-                    "color": "#EAB839",
-                    "value": 10000000
-                  },
-                  {
-                    "color": "red",
-                    "value": 75000000
-                  }
-                ]
-              }
-            },
-            "overrides": []
-          },
-          "gridPos": {
-            "h": 7,
-            "w": 6,
-            "x": 18,
-            "y": 114
-          },
-          "id": 42,
-          "options": {
-            "minVizHeight": 75,
-            "minVizWidth": 75,
-            "orientation": "auto",
-            "reduceOptions": {
-              "calcs": [
-                "lastNotNull"
-              ],
-              "fields": "",
-              "values": false
-            },
-            "showThresholdLabels": false,
-            "showThresholdMarkers": true,
-            "sizing": "auto"
-          },
-          "pluginVersion": "12.0.2",
-          "targets": [
-            {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "PBFA97CFB590B2093"
-              },
-              "disableTextWrap": false,
-              "editorMode": "code",
-              "expr": "canopy_store_partition_size{instance=~\"$instance\"}",
-              "fullMetaSearch": false,
-              "includeNullMetadata": true,
-              "legendFormat": "{{instance}}",
-              "range": true,
-              "refId": "A",
-              "useBackend": false
-            }
-          ],
-          "title": "DB Partition  Size",
-          "type": "gauge"
-        }
-      ],
+      "panels": [],
       "title": "DB",
       "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 0,
+        "y": 92
+      },
+      "id": 29,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_mempool_size{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "MempoolSize",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 3500
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 6,
+        "y": 92
+      },
+      "id": 28,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_mempool_size{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "MempoolSize",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "Txs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 92
+      },
+      "id": 27,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_mempool_tx_count{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "MempoolCount",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000
+              },
+              {
+                "color": "red",
+                "value": 3500
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 92
+      },
+      "id": 30,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_mempool_tx_count{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "Mempool Tx count",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 100
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "rate(canopy_store_commit_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Commit Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1.5
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 100
+      },
+      "id": 33,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "rate(canopy_store_commit_time_sum{instance=~\"$instance\", chain=~\"$chain\"}[$__rate_interval])",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Commit Time",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 100
+      },
+      "id": 36,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_partition_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Partition Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 5000
+              },
+              {
+                "color": "red",
+                "value": 10000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 100
+      },
+      "id": 37,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_partition_time_sum{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Partition Time",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 107
+      },
+      "id": 38,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_commit_entries{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Commit Entries",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000000
+              },
+              {
+                "color": "red",
+                "value": 1500000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 107
+      },
+      "id": 39,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_commit_entries{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Commit Entries",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 107
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_partition_entries{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Partition Entries",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000000
+              },
+              {
+                "color": "red",
+                "value": 1500000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 107
+      },
+      "id": 35,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_partition_entries{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Partition Entries",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 0,
+        "y": 114
+      },
+      "id": 41,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_commit_size{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Commit Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 1000000
+              },
+              {
+                "color": "red",
+                "value": 10000000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 6,
+        "y": 114
+      },
+      "id": 40,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_commit_size{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Commit  Size",
+      "type": "gauge"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 12,
+        "y": 114
+      },
+      "id": 43,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        }
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_partition_size{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Partition Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "#EAB839",
+                "value": 10000000
+              },
+              {
+                "color": "red",
+                "value": 75000000
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 6,
+        "x": 18,
+        "y": 114
+      },
+      "id": 42,
+      "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto"
+      },
+      "pluginVersion": "12.2.0-16557133545",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "PBFA97CFB590B2093"
+          },
+          "disableTextWrap": false,
+          "editorMode": "code",
+          "expr": "canopy_store_partition_size{instance=~\"$instance\", chain=~\"$chain\"}",
+          "fullMetaSearch": false,
+          "includeNullMetadata": true,
+          "legendFormat": "{{instance}}",
+          "range": true,
+          "refId": "A",
+          "useBackend": false
+        }
+      ],
+      "title": "DB Partition  Size",
+      "type": "gauge"
     },
     {
       "collapsed": false,
@@ -5461,7 +5407,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 92
+        "y": 121
       },
       "id": 76,
       "panels": [],
@@ -5471,7 +5417,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -5520,7 +5466,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -5540,7 +5487,7 @@
         "h": 7,
         "w": 6,
         "x": 0,
-        "y": 93
+        "y": 122
       },
       "id": 77,
       "options": {
@@ -5556,7 +5503,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -5565,7 +5512,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_double_signer_count{instance=~\"$instance\"}",
+          "expr": "canopy_validator_double_signer_count{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -5580,7 +5527,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -5629,7 +5576,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -5649,7 +5597,7 @@
         "h": 7,
         "w": 6,
         "x": 6,
-        "y": 93
+        "y": 122
       },
       "id": 78,
       "options": {
@@ -5665,7 +5613,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -5674,7 +5622,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_double_signer{instance=~\"$instance\"}",
+          "expr": "canopy_validator_double_signer{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -5689,7 +5637,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -5738,7 +5686,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -5758,7 +5707,7 @@
         "h": 7,
         "w": 6,
         "x": 12,
-        "y": 93
+        "y": 122
       },
       "id": 79,
       "options": {
@@ -5774,7 +5723,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -5783,7 +5732,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_non_signer_count{instance=~\"$instance\"}",
+          "expr": "canopy_validator_non_signer_count{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -5798,7 +5747,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -5847,7 +5796,8 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green"
+                "color": "green",
+                "value": 0
               },
               {
                 "color": "#EAB839",
@@ -5867,7 +5817,7 @@
         "h": 7,
         "w": 6,
         "x": 18,
-        "y": 93
+        "y": 122
       },
       "id": 80,
       "options": {
@@ -5883,7 +5833,7 @@
           "sort": "none"
         }
       },
-      "pluginVersion": "12.0.2",
+      "pluginVersion": "12.2.0-16557133545",
       "targets": [
         {
           "datasource": {
@@ -5892,7 +5842,7 @@
           },
           "disableTextWrap": false,
           "editorMode": "code",
-          "expr": "canopy_validator_non_signer{instance=~\"$instance\"}",
+          "expr": "canopy_validator_non_signer{instance=~\"$instance\", chain=~\"$chain\"}",
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "legendFormat": "{{instance}}",
@@ -5914,14 +5864,22 @@
       {
         "current": {
           "text": [
-            "node1:9090",
-            "node2:9090",
-            "node3:9090"
+            "canopy-mainnet-node-0",
+            "canopy-mainnet-node-1",
+            "localnet-extra-101",
+            "localnet-oracle-3",
+            "localnet-oracle-4",
+            "localnet-oracle-5",
+            "localnet-root-1"
           ],
           "value": [
-            "node1:9090",
-            "node2:9090",
-            "node3:9090"
+            "canopy-mainnet-node-0",
+            "canopy-mainnet-node-1",
+            "localnet-extra-101",
+            "localnet-oracle-3",
+            "localnet-oracle-4",
+            "localnet-oracle-5",
+            "localnet-root-1"
           ]
         },
         "definition": "label_values(canopy_bft_height,instance)",
@@ -5939,16 +5897,43 @@
         "refresh": 1,
         "regex": "",
         "type": "query"
+      },
+      {
+        "allValue": "All",
+        "allowCustomValue": false,
+        "current": {
+          "text": [
+            ""
+          ],
+          "value": [
+            ""
+          ]
+        },
+        "definition": "label_values(canopy_chain_id,chain)",
+        "description": "",
+        "includeAll": false,
+        "label": "chain",
+        "multi": true,
+        "name": "chain",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(canopy_chain_id,chain)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "type": "query"
       }
     ]
   },
   "time": {
-    "from": "now-30m",
+    "from": "now-5m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Canopy dashboard",
   "uid": "fejf7y7gcnwg0e",
-  "version": 5
+  "version": 7
 }

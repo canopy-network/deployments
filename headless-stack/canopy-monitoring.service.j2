@@ -1,0 +1,20 @@
+[Unit]
+Description=Canopy Headless Monitoring Stack with Prometheus Federation
+Requires=docker.service
+After=docker.service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User={{ canopy_user }}
+Group={{ canopy_user }}
+WorkingDirectory={{ canopy_home }}/headless-stack
+ExecStart=/usr/bin/docker-compose -f docker-compose.yaml up -d
+ExecStop=/usr/bin/docker-compose -f docker-compose.yaml down
+TimeoutStartSec=300
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target 

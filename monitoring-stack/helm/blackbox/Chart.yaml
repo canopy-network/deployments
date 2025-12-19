@@ -1,0 +1,18 @@
+apiVersion: v2
+name: blackbox
+description: A Helm chart for Blackbox Exporter
+type: application
+version: 0.1.0
+appVersion: "v0.27.0"
+keywords:
+  - monitoring
+  - blackbox
+  - exporter
+home: https://github.com/prometheus/blackbox_exporter
+sources:
+  - https://github.com/prometheus/blackbox_exporter
+maintainers:
+  - name: Canopy Team
+    email: team@nodefleet.net
+
+
