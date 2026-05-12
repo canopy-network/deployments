@@ -131,11 +131,11 @@ This stack runs the following local and production services:
 - http://wallet.node2.localhost/
 (password protected by canopy:canopy)
 - http://explorer.node2.localhost/
-- http://rpc.node1.localhost/
-- http://adminrpc.node1.localhost/
+- http://rpc.node2.localhost/
+- http://adminrpc.node2.localhost/
 
 
-Grafana monitorign service 
+Grafana monitoring service 
 
 - http://monitoring.localhost/
 	user: admin, pass: canopy
