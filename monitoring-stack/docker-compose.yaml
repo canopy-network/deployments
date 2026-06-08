@@ -1,39 +1,28 @@
-
 x-loki:
   &loki-logging
   driver: loki
   options:
     loki-url: "http://localhost:3100/loki/api/v1/push"
-    max-size: 5m
+    max-size: "5m"
     mode: non-blocking
-    max-buffer-size: 4m
-    loki-retries: '3'
-    max-file: '3'
-    keep-file: 'false'
+    max-buffer-size: "4m"
+    loki-retries: "3"
+    max-file: "3"
+    keep-file: "false"
 
 services:
   node1:
     container_name: node1
     hostname: node1
     image: canopynetwork/canopy:latest
-      # This is just here as an example on how to build from a branch
-      #build:
-      #context: ../docker_image
-        #dockerfile: ./Dockerfile
-        #network: host
-        #args:
-        # BUILD_PATH: cmd/cli
-          # BIN_PATH: $BIN_PATH
-          #BRANCH: latest
     env_file:
       - .env
     ports:
-      - 9001:9001 # TCP P2P
-    expose:
-      - 50000 # Wallet
-      - 50001 # Explorer
-      - 50002 # RPC
-      - 50003 # Admin RPC
+      - "50000:50000" # Wallet
+      - "50001:50001" # Explorer
+      - "50002:50002" # RPC
+      - "50003:50003" # Admin RPC
+      - "9001:9001"   # TCP P2P
     command: [ "start" ]
     volumes:
       - ../canopy_data/node1:/root/.canopy
@@ -49,25 +38,14 @@ services:
     container_name: node2
     hostname: node2
     image: canopynetwork/canopy:latest
-      # This is just here as an example on how to build from a branch
-      # build:
-      # context: ../docker_image
-        #dockerfile: ./Dockerfile
-        # network: host
-        #args:
-        #BUILD_PATH: cmd/cli
-          # BIN_PATH: $BIN_PATH
-          #        BRANCH: latest
-
     env_file:
       - .env
     ports:
-      - 9002:9002 # TCP P2P
-    expose:
-      - 40000 # Wallet
-      - 40001 # Explorer
-      - 40002 # RPC
-      - 40003 # Admin RPC
+      - "40000:40000" # Wallet
+      - "40001:40001" # Explorer
+      - "40002:40002" # RPC
+      - "40003:40003" # Admin RPC
+      - "9002:9002"   # TCP P2P
     command: [ "start" ]
     volumes:
       - ../canopy_data/node2:/root/.canopy
@@ -80,80 +58,82 @@ services:
           cpus: "2.0"
 
   traefik:
-    cpus: 2
-    mem_limit: 2G
     image: traefik:v3.6.2
     container_name: traefik
     restart: always
-    env_file: 
+    env_file:
       - .env
     ports:
-      - 80:80
-      - 443:443 
-      - 8082 # metrics
+      - "80:80"
+      - "443:443"
+      - "8082:8082" # metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./loadbalancer/traefik.yml:/traefik.yml:ro
       - ./loadbalancer/services/:/etc/traefik/services/:ro
       - ./loadbalancer/certs:/letsencrypt
     logging: *loki-logging
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "2.0"
 
   prometheus:
     image: prom/prometheus:v3.5.0
     container_name: prometheus
+    restart: always
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./monitoring/prometheus/data:/prometheus/data
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - "--config.file=/etc/prometheus/prometheus.yml"
     expose:
-      - 9090
-    restart: always
+      - "9090"
     logging: *loki-logging
-
 
   grafana:
     image: grafana/grafana:12.2.0-16557133545
-    container_name: grafana 
+    container_name: grafana
+    restart: always
+    env_file:
+      - .env
     ports:
-    -  "3000:3000"
+      - "3000:3000"
     volumes:
       - ./monitoring/grafana/data:/var/lib/grafana
       - ./monitoring/grafana/dashboards:/etc/grafana/dashboards
       - ./monitoring/grafana/provisioning/:/etc/grafana/provisioning/
-    env_file: 
-      - .env
-    restart: always
     logging: *loki-logging
 
   loki:
     image: grafana/loki:3.4.4
     container_name: loki
+    restart: always
+    ports:
+      - "3100:3100"
     volumes:
       - ./monitoring/loki/config.yaml:/etc/loki/local-config.yaml
       - ./monitoring/loki/data:/var/lib/loki
-    expose:
-      - 3100
-    ports:
-      - "3100:3100" 
     command: --config.file=/etc/loki/local-config.yaml
-    restart: always
     logging: *loki-logging
 
   blackbox:
     container_name: blackbox
     image: prom/blackbox-exporter:v0.27.0
+    restart: always
     privileged: true
     expose:
-      - '9115'  
+      - "9115"
     volumes:
       - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:v0.52.0
     container_name: cadvisor
+    restart: always
     expose:
-      - 8080
+      - "8080"
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
@@ -162,8 +142,8 @@ services:
 
   node-exporter:
     image: prom/node-exporter:v1.9.1
-    container_name: node-exporter 
-    expose:
-      - 9100 
+    container_name: node-exporter
     restart: always
+    expose:
+      - "9100"
     logging: *loki-logging
