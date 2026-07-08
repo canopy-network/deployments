@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder 
+FROM node:18-alpine AS builder
 
 ARG BRANCH='latest'
 ARG CLI_DIR
@@ -21,13 +21,13 @@ RUN echo "Building from BRANCH=${BRANCH}" && \
         echo "Cloning branch $BRANCH" && \
         git clone -b "$BRANCH" https://github.com/canopy-network/canopy.git .; \
     fi
-# copy golang 
-COPY --from=golang:1.24-alpine  /usr/local/go/ /usr/local/go/
+# copy golang
+COPY --from=golang:1.26-alpine  /usr/local/go/ /usr/local/go/
 ENV PATH="/usr/local/go/bin:${PATH}"
 
 RUN go version
-# Builds 
-RUN apk update && apk add --no-cache make bash nodejs npm 
+# Builds
+RUN apk update && apk add --no-cache make bash nodejs npm
 RUN make build/wallet
 RUN make build/explorer
 
@@ -44,18 +44,17 @@ RUN if [ ! -f "${BIN_PATH}" ]; then \
 
 FROM alpine:3.19
 WORKDIR /app
-ARG BIN_PATH=/bin/cli
 
 # Coying for command
 COPY --from=builder /go/src/github.com/canopy-network/canopy/bin ./canopy
 # Copying cli for auto update
-COPY --from=builder ${BIN_PATH} ${BIN_PATH}
+COPY --from=builder /bin/cli /bin/cli
 # Copying entrypoint for persisting update cli
 COPY entrypoint.sh /app/entrypoint.sh
 
 RUN apk add --no-cache pigz ca-certificates
 
-RUN chmod +x ${BIN_PATH}
+RUN chmod +x /bin/cli
 RUN chmod +x /app/canopy
 RUN chmod +x /app/entrypoint.sh
 
