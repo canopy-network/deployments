@@ -59,6 +59,21 @@ http:
         replacement: "${1}/explorer/"
         permanent: true
 
+    # Redirect legacy path URLs to the per-app subdomains
+    # (nodeN.<domain>/wallet -> wallet.nodeN.<domain>). The host captures
+    # keep any :port suffix, so this works on nonstandard ports too.
+    wallet-subdomain-redirect:
+      redirectRegex:
+        regex: "^https?://([^./]+)\\.([^/]+)/wallet/?(.*)"
+        replacement: "https://wallet.${1}.${2}/${3}"
+        permanent: true
+
+    explorer-subdomain-redirect:
+      redirectRegex:
+        regex: "^https?://([^./]+)\\.([^/]+)/explorer/?(.*)"
+        replacement: "https://explorer.${1}.${2}/${3}"
+        permanent: true
+
     websocket-headers:
       headers:
         customRequestHeaders:

@@ -70,6 +70,32 @@ http:
       tls:
         certResolver: https-resolver
 
+    # Legacy /wallet and /explorer paths 301-redirect to the subdomains so
+    # old links and bookmarks keep working.
+    canopy-node1-wallet-redirect:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      service: noop@internal
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - wallet-subdomain-redirect
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-explorer-redirect:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
+      service: noop@internal
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - explorer-subdomain-redirect
+      tls:
+        certResolver: https-resolver
+
     # Legacy path-based RPC routes kept for backwards compatibility:
     # deployed node config.json files still point at
     # https://node1.$DOMAIN/rpc and /adminrpc (see README).
@@ -148,6 +174,30 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-wallet-redirect:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      service: noop@internal
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - wallet-subdomain-redirect
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-explorer-redirect:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
+      service: noop@internal
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - explorer-subdomain-redirect
       tls:
         certResolver: https-resolver
 
