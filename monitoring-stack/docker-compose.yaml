@@ -15,16 +15,16 @@ services:
   node1:
     container_name: node1
     hostname: node1
-    image: canopynetwork/canopy:latest
-      # This is just here as an example on how to build from a branch
-      #build:
-      #context: ../docker_image
-        #dockerfile: ./Dockerfile
-        #network: host
-        #args:
-        # BUILD_PATH: cmd/cli
-          # BIN_PATH: $BIN_PATH
-          #BRANCH: latest
+    # Built from source (BRANCH=latest checks out the latest tag).
+    # Set BRANCH to a branch name to build from that branch instead.
+    build:
+      context: ../docker_image
+      dockerfile: ./Dockerfile
+      network: host
+      args:
+        BUILD_PATH: cmd/cli
+        BIN_PATH: $BIN_PATH
+        BRANCH: latest
     env_file:
       - .env
     ports:
@@ -48,16 +48,14 @@ services:
   node2:
     container_name: node2
     hostname: node2
-    image: canopynetwork/canopy:latest
-      # This is just here as an example on how to build from a branch
-      # build:
-      # context: ../docker_image
-        #dockerfile: ./Dockerfile
-        # network: host
-        #args:
-        #BUILD_PATH: cmd/cli
-          # BIN_PATH: $BIN_PATH
-          #        BRANCH: latest
+    build:
+      context: ../docker_image
+      dockerfile: ./Dockerfile
+      network: host
+      args:
+        BUILD_PATH: cmd/cli
+        BIN_PATH: $BIN_PATH
+        BRANCH: latest
 
     env_file:
       - .env
