@@ -1,4 +1,10 @@
 # traefik-dynamic.yaml
+#
+# Subdomain-per-app routing (wallet./explorer./rpc./adminrpc.nodeN.$DOMAIN),
+# mirroring local.yaml. The new explorer/wallet UIs request assets from
+# root-relative paths, so PathPrefix + stripPrefix routing breaks them.
+# Requires the *.node1.$DOMAIN / *.node2.$DOMAIN wildcard A records from the
+# README (already part of the documented DNS setup).
 http:
   routers:
     canopy-monitoring:
@@ -13,23 +19,9 @@ http:
       tls:
         certResolver: https-resolver
 
-
-    # New router for /wallet redirect (higher priority)
-    canopy-node1-wallet-redirect:
-      rule: Host(`node1.{{ env "DOMAIN" }}`) && Path(`/wallet`)
-      service: canopy-wallet
-      priority: 2  # Higher priority than the main wallet router
-      entryPoints:
-        - web
-        - websecure
-      middlewares:
-        - https-redirect
-        - wallet-redirect
-      tls:
-        certResolver: https-resolver
-
+    # ---------- node1 ----------
     canopy-node1-wallet:
-      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      rule: Host(`wallet.node1.{{ env "DOMAIN" }}`)
       service: canopy-wallet
       priority: 1
       entryPoints:
@@ -38,26 +30,11 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
-        - strip-wallet-prefix
-      tls:
-        certResolver: https-resolver
-
-    # New router for /explorer redirect (higher priority)
-    canopy-node1-explorer-redirect:
-      rule: Host(`node1.{{ env "DOMAIN" }}`) && Path(`/explorer`)
-      service: canopy-explorer
-      priority: 2  # Higher priority than the main explorer router
-      entryPoints:
-        - web
-        - websecure
-      middlewares:
-        - https-redirect
-        - explorer-redirect
       tls:
         certResolver: https-resolver
 
     canopy-node1-explorer:
-      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
+      rule: Host(`explorer.node1.{{ env "DOMAIN" }}`)
       service: canopy-explorer
       priority: 1
       entryPoints:
@@ -65,11 +42,38 @@ http:
         - websecure
       middlewares:
         - https-redirect
-        - strip-explorer-prefix
       tls:
         certResolver: https-resolver
 
     canopy-node1-rpc:
+      rule: Host(`rpc.node1.{{ env "DOMAIN" }}`)
+      service: canopy-rpc
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-admin-rpc:
+      rule: Host(`adminrpc.node1.{{ env "DOMAIN" }}`)
+      service: canopy-admin-rpc
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+      tls:
+        certResolver: https-resolver
+
+    # Legacy path-based RPC routes kept for backwards compatibility:
+    # deployed node config.json files still point at
+    # https://node1.$DOMAIN/rpc and /adminrpc (see README).
+    canopy-node1-rpc-path:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
       service: canopy-rpc
       priority: 1
@@ -82,7 +86,7 @@ http:
       tls:
         certResolver: https-resolver
 
-    canopy-node1-admin-rpc:
+    canopy-node1-admin-rpc-path:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
       service: canopy-admin-rpc
       priority: 1
@@ -95,23 +99,10 @@ http:
         - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver
-    
-    # New router for node2 /wallet redirect (higher priority)
-    canopy-node2-wallet-redirect:
-      rule: Host(`node2.{{ env "DOMAIN" }}`) && Path(`/wallet`)
-      service: canopy-wallet2
-      priority: 2  # Higher priority than the main wallet router
-      entryPoints:
-        - web
-        - websecure
-      middlewares:
-        - https-redirect
-        - wallet-redirect
-      tls:
-        certResolver: https-resolver
 
+    # ---------- node2 ----------
     canopy-node2-wallet:
-      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      rule: Host(`wallet.node2.{{ env "DOMAIN" }}`)
       service: canopy-wallet2
       priority: 1
       entryPoints:
@@ -120,26 +111,11 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
-        - strip-wallet-prefix
-      tls:
-        certResolver: https-resolver
-
-    # New router for node2 /explorer redirect (higher priority)
-    canopy-node2-explorer-redirect:
-      rule: Host(`node2.{{ env "DOMAIN" }}`) && Path(`/explorer`)
-      service: canopy-explorer2
-      priority: 2  # Higher priority than the main explorer router
-      entryPoints:
-        - web
-        - websecure
-      middlewares:
-        - https-redirect
-        - explorer-redirect
       tls:
         certResolver: https-resolver
 
     canopy-node2-explorer:
-      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
+      rule: Host(`explorer.node2.{{ env "DOMAIN" }}`)
       service: canopy-explorer2
       priority: 1
       entryPoints:
@@ -147,11 +123,35 @@ http:
         - websecure
       middlewares:
         - https-redirect
-        - strip-explorer-prefix
       tls:
         certResolver: https-resolver
 
     canopy-node2-rpc:
+      rule: Host(`rpc.node2.{{ env "DOMAIN" }}`)
+      service: canopy-rpc2
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-admin-rpc:
+      rule: Host(`adminrpc.node2.{{ env "DOMAIN" }}`)
+      service: canopy-admin-rpc2
+      priority: 1
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-rpc-path:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
       service: canopy-rpc2
       priority: 1
@@ -164,7 +164,7 @@ http:
       tls:
         certResolver: https-resolver
 
-    canopy-node2-admin-rpc:
+    canopy-node2-admin-rpc-path:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
       service: canopy-admin-rpc2
       priority: 1
@@ -185,23 +185,11 @@ http:
         servers:
           - url: http://node1:50000/
 
-    canopy-wallet-static:
-      loadBalancer:
-        passHostHeader: false
-        servers:
-          - url: http://node1:50000/_next/
-
     canopy-explorer:
       loadBalancer:
         passHostHeader: false
         servers:
           - url: http://node1:50001
-
-    canopy-explorer-static:
-      loadBalancer:
-        passHostHeader: false
-        servers:
-          - url: http://node1:50001/_next/
 
     canopy-rpc:
       loadBalancer:
