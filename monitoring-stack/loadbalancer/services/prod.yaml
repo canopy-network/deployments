@@ -100,6 +100,52 @@ http:
       tls:
         certResolver: https-resolver
 
+    # Same-origin RPC/admin API on the explorer host, so a relative
+    # rpcURL/adminRPCUrl ("/rpc", "/adminrpc") in config.json works from
+    # both UIs (mirrors the k8s staging IngressRoutes).
+    canopy-node1-explorer-rpc:
+      rule: Host(`explorer.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
+      service: canopy-rpc
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - rpc-root-to-v1-eth
+        - strip-rpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-explorer-adminrpc-admin:
+      rule: Host(`explorer.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
+      service: canopy-admin-rpc
+      priority: 3
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - strip-adminrpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-explorer-adminrpc:
+      rule: Host(`explorer.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
+      service: canopy-rpc
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - adminrpc-root-to-v1-tx
+        - strip-adminrpc-prefix
+      tls:
+        certResolver: https-resolver
+
     canopy-node1-rpc:
       rule: Host(`rpc.node1.{{ env "DOMAIN" }}`)
       service: canopy-rpc
@@ -279,6 +325,49 @@ http:
         - websecure
       middlewares:
         - https-redirect
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-explorer-rpc:
+      rule: Host(`explorer.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
+      service: canopy-rpc2
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - rpc-root-to-v1-eth
+        - strip-rpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-explorer-adminrpc-admin:
+      rule: Host(`explorer.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
+      service: canopy-admin-rpc2
+      priority: 3
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - strip-adminrpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-explorer-adminrpc:
+      rule: Host(`explorer.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
+      service: canopy-rpc2
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - adminrpc-root-to-v1-tx
+        - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver
 
