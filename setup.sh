@@ -85,23 +85,18 @@ if [[ -n "$DOMAIN" ]]; then
     sed -i "s|tcp://canopy.localhost|tcp://$DOMAIN|g" "$NODE2_CONFIG"
   fi
 
-  # Replace RPC and Admin RPC URLs for node1.
-  # rpcURL uses the open rpc subdomain; adminRPCUrl goes through the wallet
-  # host so the wallet UI calls it same-origin (basic-auth credentials are
-  # reused by the browser; cross-origin preflights would be rejected).
+  # Point the UIs at same-origin relative API paths. The wallet and explorer
+  # hosts both route /rpc and /adminrpc, so relative URLs work on any domain,
+  # keep basic-auth working (no cross-origin preflights), and need no
+  # per-domain templating.
   sed -i -E \
-    -e "s|\"rpcURL\": *\"http://localhost:50002\"|\"rpcURL\": \"https://rpc.node1.$DOMAIN\"|" \
-    -e "s|\"adminRPCUrl\": *\"http://localhost:50003\"|\"adminRPCUrl\": \"https://wallet.node1.$DOMAIN/adminrpc\"|" \
-    -e "s|\"rpcURL\": *\"https://node1.$DOMAIN/rpc\"|\"rpcURL\": \"https://rpc.node1.$DOMAIN\"|" \
-    -e "s|\"adminRPCUrl\": *\"https://node1.$DOMAIN/adminrpc\"|\"adminRPCUrl\": \"https://wallet.node1.$DOMAIN/adminrpc\"|" \
+    -e "s|\"rpcURL\": *\"[^\"]*\"|\"rpcURL\": \"/rpc\"|" \
+    -e "s|\"adminRPCUrl\": *\"[^\"]*\"|\"adminRPCUrl\": \"/adminrpc\"|" \
     "$NODE1_CONFIG"
 
-  # Replace RPC and Admin RPC URLs for node2
   sed -i -E \
-    -e "s|\"rpcURL\": *\"http://localhost:40002\"|\"rpcURL\": \"https://rpc.node2.$DOMAIN\"|" \
-    -e "s|\"adminRPCUrl\": *\"http://localhost:40003\"|\"adminRPCUrl\": \"https://wallet.node2.$DOMAIN/adminrpc\"|" \
-    -e "s|\"rpcURL\": *\"https://node2.$DOMAIN/rpc\"|\"rpcURL\": \"https://rpc.node2.$DOMAIN\"|" \
-    -e "s|\"adminRPCUrl\": *\"https://node2.$DOMAIN/adminrpc\"|\"adminRPCUrl\": \"https://wallet.node2.$DOMAIN/adminrpc\"|" \
+    -e "s|\"rpcURL\": *\"[^\"]*\"|\"rpcURL\": \"/rpc\"|" \
+    -e "s|\"adminRPCUrl\": *\"[^\"]*\"|\"adminRPCUrl\": \"/adminrpc\"|" \
     "$NODE2_CONFIG"
 fi
 
