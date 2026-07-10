@@ -5,6 +5,16 @@
 # root-relative paths, so PathPrefix + stripPrefix routing breaks them.
 # Requires the *.node1.$DOMAIN / *.node2.$DOMAIN wildcard A records from the
 # README (already part of the documented DNS setup).
+#
+# Admin API split (newer canopy): /v1/tx & friends are served by the regular
+# RPC port (50002/40002); only /v1/admin/* remains on the admin port
+# (50003/40003). All adminrpc entry points below route accordingly.
+#
+# The wallet host serves /rpc and /adminrpc same-origin so the browser reuses
+# the wallet's basic-auth credentials (cross-origin preflights would be 401'd
+# by the basic-auth middleware). Point config.json at:
+#   rpcURL:      https://rpc.nodeN.$DOMAIN
+#   adminRPCUrl: https://wallet.nodeN.$DOMAIN/adminrpc
 http:
   routers:
     canopy-monitoring:
@@ -33,6 +43,51 @@ http:
       tls:
         certResolver: https-resolver
 
+    # Same-origin RPC/admin API for the wallet UI (see header note).
+    canopy-node1-wallet-rpc:
+      rule: Host(`wallet.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
+      service: canopy-rpc
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - rpc-root-to-v1-eth
+        - strip-rpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-wallet-adminrpc-admin:
+      rule: Host(`wallet.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
+      service: canopy-admin-rpc
+      priority: 3
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - strip-adminrpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-wallet-adminrpc:
+      rule: Host(`wallet.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
+      service: canopy-rpc
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - adminrpc-root-to-v1-tx
+        - strip-adminrpc-prefix
+      tls:
+        certResolver: https-resolver
+
     canopy-node1-explorer:
       rule: Host(`explorer.node1.{{ env "DOMAIN" }}`)
       service: canopy-explorer
@@ -54,12 +109,26 @@ http:
         - websecure
       middlewares:
         - https-redirect
+        - rpc-subdomain-root-to-v1-eth
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-admin-rpc-admin:
+      rule: Host(`adminrpc.node1.{{ env "DOMAIN" }}`) && PathPrefix(`/v1/admin`)
+      service: canopy-admin-rpc
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
       tls:
         certResolver: https-resolver
 
     canopy-node1-admin-rpc:
       rule: Host(`adminrpc.node1.{{ env "DOMAIN" }}`)
-      service: canopy-admin-rpc
+      service: canopy-rpc
       priority: 1
       entryPoints:
         - web
@@ -67,6 +136,7 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+        - adminrpc-subdomain-root-to-v1-tx
       tls:
         certResolver: https-resolver
 
@@ -108,13 +178,28 @@ http:
         - websecure
       middlewares:
         - https-redirect
+        - rpc-root-to-v1-eth
         - strip-rpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node1-admin-rpc-admin-path:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
+      service: canopy-admin-rpc
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver
 
     canopy-node1-admin-rpc-path:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
-      service: canopy-admin-rpc
+      service: canopy-rpc
       priority: 1
       entryPoints:
         - web
@@ -122,6 +207,7 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+        - adminrpc-root-to-v1-tx
         - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver
@@ -137,6 +223,50 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-wallet-rpc:
+      rule: Host(`wallet.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
+      service: canopy-rpc2
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - rpc-root-to-v1-eth
+        - strip-rpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-wallet-adminrpc-admin:
+      rule: Host(`wallet.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
+      service: canopy-admin-rpc2
+      priority: 3
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - strip-adminrpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-wallet-adminrpc:
+      rule: Host(`wallet.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
+      service: canopy-rpc2
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - adminrpc-root-to-v1-tx
+        - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver
 
@@ -161,12 +291,26 @@ http:
         - websecure
       middlewares:
         - https-redirect
+        - rpc-subdomain-root-to-v1-eth
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-admin-rpc-admin:
+      rule: Host(`adminrpc.node2.{{ env "DOMAIN" }}`) && PathPrefix(`/v1/admin`)
+      service: canopy-admin-rpc2
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
       tls:
         certResolver: https-resolver
 
     canopy-node2-admin-rpc:
       rule: Host(`adminrpc.node2.{{ env "DOMAIN" }}`)
-      service: canopy-admin-rpc2
+      service: canopy-rpc2
       priority: 1
       entryPoints:
         - web
@@ -174,6 +318,7 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+        - adminrpc-subdomain-root-to-v1-tx
       tls:
         certResolver: https-resolver
 
@@ -210,13 +355,28 @@ http:
         - websecure
       middlewares:
         - https-redirect
+        - rpc-root-to-v1-eth
         - strip-rpc-prefix
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-admin-rpc-admin-path:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
+      service: canopy-admin-rpc2
+      priority: 2
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - https-redirect
+        - basic-auth
+        - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver
 
     canopy-node2-admin-rpc-path:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
-      service: canopy-admin-rpc2
+      service: canopy-rpc2
       priority: 1
       entryPoints:
         - web
@@ -224,6 +384,7 @@ http:
       middlewares:
         - https-redirect
         - basic-auth
+        - adminrpc-root-to-v1-tx
         - strip-adminrpc-prefix
       tls:
         certResolver: https-resolver

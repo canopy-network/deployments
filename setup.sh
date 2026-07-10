@@ -85,20 +85,23 @@ if [[ -n "$DOMAIN" ]]; then
     sed -i "s|tcp://canopy.localhost|tcp://$DOMAIN|g" "$NODE2_CONFIG"
   fi
 
-  # Replace RPC and Admin RPC URLs for node1
+  # Replace RPC and Admin RPC URLs for node1.
+  # rpcURL uses the open rpc subdomain; adminRPCUrl goes through the wallet
+  # host so the wallet UI calls it same-origin (basic-auth credentials are
+  # reused by the browser; cross-origin preflights would be rejected).
   sed -i -E \
-    -e "s|\"rpcURL\": *\"http://localhost:50002\"|\"rpcURL\": \"https://node1.$DOMAIN/rpc\"|" \
-    -e "s|\"adminRPCUrl\": *\"http://localhost:50003\"|\"adminRPCUrl\": \"https://node1.$DOMAIN/adminrpc\"|" \
-    -e "s|\"rpcURL\": *\"https://rpc.node1.$DOMAIN\"|\"rpcURL\": \"https://node1.$DOMAIN/rpc\"|" \
-    -e "s|\"adminRPCUrl\": *\"https://adminrpc.node1.$DOMAIN\"|\"adminRPCUrl\": \"https://node1.$DOMAIN/adminrpc\"|" \
+    -e "s|\"rpcURL\": *\"http://localhost:50002\"|\"rpcURL\": \"https://rpc.node1.$DOMAIN\"|" \
+    -e "s|\"adminRPCUrl\": *\"http://localhost:50003\"|\"adminRPCUrl\": \"https://wallet.node1.$DOMAIN/adminrpc\"|" \
+    -e "s|\"rpcURL\": *\"https://node1.$DOMAIN/rpc\"|\"rpcURL\": \"https://rpc.node1.$DOMAIN\"|" \
+    -e "s|\"adminRPCUrl\": *\"https://node1.$DOMAIN/adminrpc\"|\"adminRPCUrl\": \"https://wallet.node1.$DOMAIN/adminrpc\"|" \
     "$NODE1_CONFIG"
 
   # Replace RPC and Admin RPC URLs for node2
   sed -i -E \
-    -e "s|\"rpcURL\": *\"http://localhost:40002\"|\"rpcURL\": \"https://node2.$DOMAIN/rpc\"|" \
-    -e "s|\"adminRPCUrl\": *\"http://localhost:40003\"|\"adminRPCUrl\": \"https://node2.$DOMAIN/adminrpc\"|" \
-    -e "s|\"rpcURL\": *\"https://rpc.node2.$DOMAIN\"|\"rpcURL\": \"https://node2.$DOMAIN/rpc\"|" \
-    -e "s|\"adminRPCUrl\": *\"https://adminrpc.node2.$DOMAIN\"|\"adminRPCUrl\": \"https://node2.$DOMAIN/adminrpc\"|" \
+    -e "s|\"rpcURL\": *\"http://localhost:40002\"|\"rpcURL\": \"https://rpc.node2.$DOMAIN\"|" \
+    -e "s|\"adminRPCUrl\": *\"http://localhost:40003\"|\"adminRPCUrl\": \"https://wallet.node2.$DOMAIN/adminrpc\"|" \
+    -e "s|\"rpcURL\": *\"https://node2.$DOMAIN/rpc\"|\"rpcURL\": \"https://rpc.node2.$DOMAIN\"|" \
+    -e "s|\"adminRPCUrl\": *\"https://node2.$DOMAIN/adminrpc\"|\"adminRPCUrl\": \"https://wallet.node2.$DOMAIN/adminrpc\"|" \
     "$NODE2_CONFIG"
 fi
 

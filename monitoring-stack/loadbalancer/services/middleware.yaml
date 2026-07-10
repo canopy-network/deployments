@@ -74,6 +74,29 @@ http:
         replacement: "https://explorer.${1}.${2}/${3}"
         permanent: true
 
+    # Newer canopy nodes split the admin API: /v1/tx & friends moved to the
+    # regular RPC port; only /v1/admin/* remains on the admin port. These
+    # rewrites send bare-root POSTs to the right endpoints.
+    adminrpc-root-to-v1-tx:
+      replacePathRegex:
+        regex: "^/adminrpc/?$"
+        replacement: /v1/tx
+
+    adminrpc-subdomain-root-to-v1-tx:
+      replacePathRegex:
+        regex: "^/$"
+        replacement: /v1/tx
+
+    rpc-root-to-v1-eth:
+      replacePathRegex:
+        regex: "^/rpc/?$"
+        replacement: /v1/eth
+
+    rpc-subdomain-root-to-v1-eth:
+      replacePathRegex:
+        regex: "^/$"
+        replacement: /v1/eth
+
     websocket-headers:
       headers:
         customRequestHeaders:
