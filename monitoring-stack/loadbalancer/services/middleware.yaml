@@ -74,6 +74,15 @@ http:
         replacement: "https://explorer.${1}.${2}/${3}"
         permanent: true
 
+    # nodeN.<domain>/wallet -> nodeN.<domain>/ — the wallet is also served at
+    # the host root, same-origin with the /rpc and /adminrpc paths, so legacy
+    # absolute rpcURL/adminRPCUrl config.json values keep working.
+    wallet-root-redirect:
+      redirectRegex:
+        regex: "^https?://([^/]+)/wallet/?(.*)"
+        replacement: "https://${1}/${2}"
+        permanent: true
+
     # Newer canopy nodes split the admin API: /v1/tx & friends moved to the
     # regular RPC port; only /v1/admin/* remains on the admin port. These
     # rewrites send bare-root POSTs to the right endpoints.

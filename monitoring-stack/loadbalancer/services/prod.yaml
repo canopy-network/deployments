@@ -186,24 +186,41 @@ http:
       tls:
         certResolver: https-resolver
 
-    # Legacy /wallet and /explorer paths 301-redirect to the subdomains so
-    # old links and bookmarks keep working.
-    canopy-node1-wallet-redirect:
-      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
-      service: noop@internal
+    # The wallet is also served at the host root, same-origin with the /rpc
+    # and /adminrpc paths below, so legacy absolute rpcURL/adminRPCUrl
+    # config.json values keep working (path routers carry higher priorities;
+    # this catch-all only sees what they don't match).
+    canopy-node1-root:
+      rule: Host(`node1.{{ env "DOMAIN" }}`)
+      service: canopy-wallet
       priority: 1
       entryPoints:
         - web
         - websecure
       middlewares:
-        - wallet-subdomain-redirect
+        - https-redirect
+        - basic-auth
+      tls:
+        certResolver: https-resolver
+
+    # Legacy /wallet path 301-redirects to the host root (same wallet, kept
+    # same-origin); /explorer redirects to its subdomain.
+    canopy-node1-wallet-redirect:
+      rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      service: noop@internal
+      priority: 10
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - wallet-root-redirect
       tls:
         certResolver: https-resolver
 
     canopy-node1-explorer-redirect:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
       service: noop@internal
-      priority: 1
+      priority: 10
       entryPoints:
         - web
         - websecure
@@ -218,7 +235,7 @@ http:
     canopy-node1-rpc-path:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
       service: canopy-rpc
-      priority: 1
+      priority: 10
       entryPoints:
         - web
         - websecure
@@ -232,7 +249,7 @@ http:
     canopy-node1-admin-rpc-admin-path:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
       service: canopy-admin-rpc
-      priority: 2
+      priority: 20
       entryPoints:
         - web
         - websecure
@@ -246,7 +263,7 @@ http:
     canopy-node1-admin-rpc-path:
       rule: Host(`node1.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
       service: canopy-rpc
-      priority: 1
+      priority: 10
       entryPoints:
         - web
         - websecure
@@ -411,22 +428,35 @@ http:
       tls:
         certResolver: https-resolver
 
-    canopy-node2-wallet-redirect:
-      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
-      service: noop@internal
+    canopy-node2-root:
+      rule: Host(`node2.{{ env "DOMAIN" }}`)
+      service: canopy-wallet2
       priority: 1
       entryPoints:
         - web
         - websecure
       middlewares:
-        - wallet-subdomain-redirect
+        - https-redirect
+        - basic-auth
+      tls:
+        certResolver: https-resolver
+
+    canopy-node2-wallet-redirect:
+      rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/wallet`)
+      service: noop@internal
+      priority: 10
+      entryPoints:
+        - web
+        - websecure
+      middlewares:
+        - wallet-root-redirect
       tls:
         certResolver: https-resolver
 
     canopy-node2-explorer-redirect:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/explorer`)
       service: noop@internal
-      priority: 1
+      priority: 10
       entryPoints:
         - web
         - websecure
@@ -438,7 +468,7 @@ http:
     canopy-node2-rpc-path:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/rpc`)
       service: canopy-rpc2
-      priority: 1
+      priority: 10
       entryPoints:
         - web
         - websecure
@@ -452,7 +482,7 @@ http:
     canopy-node2-admin-rpc-admin-path:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc/v1/admin`)
       service: canopy-admin-rpc2
-      priority: 2
+      priority: 20
       entryPoints:
         - web
         - websecure
@@ -466,7 +496,7 @@ http:
     canopy-node2-admin-rpc-path:
       rule: Host(`node2.{{ env "DOMAIN" }}`) && PathPrefix(`/adminrpc`)
       service: canopy-rpc2
-      priority: 1
+      priority: 10
       entryPoints:
         - web
         - websecure
