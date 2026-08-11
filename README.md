@@ -1,3 +1,6 @@
+> [!CAUTION]
+> **This repository is no longer maintained and will not receive any further updates. Please refer to the new deployment setup [Canopy Node](https://github.com/canopy-network/node) instead.**
+
 # Overview
 
 
