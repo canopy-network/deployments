@@ -4,7 +4,7 @@
 # Overview
 
 
-This repo is home to various deployments flavor for canopy focusing mainly on providing a proper local development enviroment and a secure but flexible staging/production environments as well
+This repo is home to various deployment flavors for Canopy, focusing mainly on providing a proper local development environment and secure but flexible staging/production environments as well.
 
 Checkout [our official node running docs](https://canopy-network.gitbook.io/docs/node-runner/setup) for production builds
 
@@ -31,7 +31,7 @@ This section includes a list of deployments options with links to their specific
  
 #### Simple stack
 
-Provide a simple [docker-compose.yaml]([url](https://github.com/canopy-network/deployments/blob/master/simple-stack/docker-compose.yaml)) configuration for providing canopy network nodes chainID: 1 and chainID: 2
+Provides a simple [docker-compose.yaml](https://github.com/canopy-network/deployments/blob/master/simple-stack/docker-compose.yaml) configuration for running Canopy network nodes with chain ID 1 and chain ID 2.
 
 ```bash
 cd  ./simple-stack
@@ -43,7 +43,7 @@ For more information please refer to [Simple stack README.md](./simple-stack/REA
 
 #### Monitoring stack
 
-Provides a stack with prometheus, loki, grafana, cadvisor, node-exporter, and traefik as loadbalancer useful for a production grade deployments and flexible for local and test environments as well
+Provides a stack with Prometheus, Loki, Grafana, cAdvisor, node-exporter, and Traefik as load balancer. This stack is useful for production-grade deployments and flexible enough for local and test environments as well.
 
 
 For more information please refer to [Monitoring stack README.md](./monitoring-stack/README.md)
@@ -51,7 +51,7 @@ For more information please refer to [Monitoring stack README.md](./monitoring-s
 
 #### docker_image 
 
-It contains the [Dockerfile]([url](https://github.com/canopy-network/deployments/tree/master/docker_image)) and entrypoint.sh used by all the stacks in order to have a centralized way of building the canopy image
+It contains the [Dockerfile](https://github.com/canopy-network/deployments/tree/master/docker_image) and `entrypoint.sh` used by all the stacks in order to have a centralized way of building the Canopy image.
 
 
 #### Canopy config files
