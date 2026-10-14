@@ -15,6 +15,9 @@ jobs:
       - name: Log payload
         run: echo "Received tag:\ ${{ github.event.client_payload.tag }}"
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -24,15 +27,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Prepare tags
+        id: prep
         run: |
           TAG=${{ github.event.client_payload.tag }}
           DOCKER_TAG=${TAG//+/-}
-          docker build \
-            -t canopynetwork/canopy:${DOCKER_TAG} \
-            -t canopynetwork/canopy:latest \
-            --build-arg BRANCH=${TAG} \
-            --build-arg BUILD_PATH=cmd/cli \
-            ./docker_image/
-          docker push canopynetwork/canopy:${DOCKER_TAG}
-          docker push canopynetwork/canopy:latest
+          echo "docker_tag=${DOCKER_TAG}" >> $GITHUB_OUTPUT
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker_image/
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            canopynetwork/canopy:${{ steps.prep.outputs.docker_tag }}
+            canopynetwork/canopy:latest
+          build-args: |
+            BRANCH=${{ github.event.client_payload.tag }}
+            BUILD_PATH=cmd/cli

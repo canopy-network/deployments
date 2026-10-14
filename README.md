@@ -53,6 +53,16 @@ For more information please refer to [Monitoring stack README.md](./monitoring-s
 
 It contains the [Dockerfile]([url](https://github.com/canopy-network/deployments/tree/master/docker_image)) and entrypoint.sh used by all the stacks in order to have a centralized way of building the canopy image
 
+##### Multi-architecture support
+
+The Docker image supports both `amd64` and `arm64` architectures. When building via the GitHub Actions workflow, images are automatically built for both platforms and published as a multi-arch manifest.
+
+For multi-platform builds locally using Docker Buildx:
+
+```bash
+docker buildx build --platform linux/amd64,linux/arm64 -t canopynetwork/canopy:local ./docker_image/
+```
+
 
 #### Canopy config files
 
