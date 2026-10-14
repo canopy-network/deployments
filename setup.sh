@@ -3,8 +3,15 @@ echo "setting up the validator key"
 docker pull canopynetwork/canopy && \
 docker run --user root -it -p 50000:50000 -p 50001:50001 -p 50002:50002 -p 50003:50003 -p 9001:9001 --name canopy-config  --volume ${PWD}/canopy_data/node1/:/root/.canopy/ canopynetwork/canopy && \
 docker stop canopy-config && docker rm canopy-config && \
-cp canopy_data/node1/validator_key.json canopy_data/node2/ && \
-cp canopy_data/node1/keystore.json canopy_data/node2/
+# IMPORTANT: Do NOT copy node1 validator_key.json or keystore.json to node2.
+# Each validator must have its own unique key. Sharing a validator key between
+# nodes causes both to sign the same consensus messages, which is treated as
+# equivocation (double-signing) and results in the validator being slashed.
+# node2 should either generate a fresh key via "canopy init" or be given a
+# separate pre-existing key before starting.
+echo "WARNING: node2 requires its own validator_key.json and keystore.json.";
+echo "Please run: docker run --rm -v ${PWD}/canopy_data/node2:/root/.canopy canopynetwork/canopy init";
+echo "to generate a fresh key pair for node2 before starting the stack."
 
 # ask user for setup type
 echo "Please select setup type:"
